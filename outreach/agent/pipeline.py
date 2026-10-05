@@ -271,7 +271,7 @@ class Pipeline:
                  f"Files: {self.ctx.files.source} — {s.AGENCY_ROOT} ({_count(self.ctx, s.VIDEOS_FOLDER)} videos, "
                  f"{_count(self.ctx, s.QUOTES_FOLDER)} quotes named by the convention)",
                  f"Templates: preview {avail['preview'] or 'MISSING'}, quote {avail['quote'] or 'MISSING'}",
-                 f"Research: {'Claude ' + s.LLM_MODEL if s.ANTHROPIC_API_KEY else 'no API key (owner enters addresses by hand)'}"
+                 f"Research: {s.LLM_PROVIDER + ' ' + s.llm_model if s.llm_key_present else 'no API key (owner enters addresses by hand)'}"
                  f"{', search ' + s.SEARCH_PROVIDER if s.SEARCH_PROVIDER != 'anthropic' else ''}"
                  f"{', Google Places' if s.GOOGLE_PLACES_API_KEY else ''}",
                  f"WhatsApp: {'validator configured' if s.WHATSAPP_VALIDATOR_URL else 'wa.me link + mobile/landline hint'}",

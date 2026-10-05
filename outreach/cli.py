@@ -44,8 +44,8 @@ def main(argv: list[str] | None = None) -> int:
     ctx = _ctx(demo)
     from .agent.models import Session
     from .agent.pipeline import Pipeline
-    from .llm import LLM
-    llm = LLM(api_key=ctx.settings.ANTHROPIC_API_KEY, model=ctx.settings.LLM_MODEL)
+    from .llm import make_llm
+    llm = make_llm(ctx.settings)
     pipeline = Pipeline(ctx, llm=llm if llm.available else None)
     if cmd == "status":
         print(pipeline.status_text())

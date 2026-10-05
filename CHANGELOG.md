@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — 2026-10-05
+- OpenAI as an alternative model provider (`LLM_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL`): request parsing, web research and the agent mode run on either provider.
+- `start.sh` for macOS and Linux.
+
 ## 1.1.0 — 2026-10-05
 - Interface: report cards, clickable answers, Companies / Activity / Templates / Status pages, light and dark theme, phone layout.
 - Chat API returns structured reports; chat history survives a reload; `cancel` clears pending questions.

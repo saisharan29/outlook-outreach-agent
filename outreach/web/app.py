@@ -27,7 +27,7 @@ from ..agent.models import Session
 from ..agent.pipeline import Pipeline
 from ..agent.report import question_to_dict, report_to_dict
 from ..config import Settings
-from ..llm import LLM
+from ..llm import make_llm
 from ..logging_setup import setup_logging
 from ..naming import parse_filename
 from ..templates import PLACEHOLDER, TemplateError, parse_template
@@ -71,7 +71,7 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
     log_ = setup_logging(s.registry_dir)
     log_.info("app start version=%s mode=%s demo=%s files=%s", __version__, s.AGENT_MODE, demo, s.FILE_SOURCE)
     failed_logins: dict[str, list[float]] = {}
-    llm = LLM(api_key=s.ANTHROPIC_API_KEY, model=s.LLM_MODEL)
+    llm = make_llm(s)
     pipeline = Pipeline(context, llm=llm if llm.available else None)
     agent = AgentLoop(context, llm) if (s.AGENT_MODE == "agent" and llm.available) else None
     sessions: dict[str, Session] = {}
@@ -142,7 +142,7 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
                 "file_source": context.files.source, "agency_root": s.AGENCY_ROOT,
                 "videos": len(videos), "quotes": len(quotes), "templates": context.templates.available(),
                 "signature": bool(context.templates.signature("fr") or context.templates.signature("en")),
-                "llm": llm.available, "model": s.LLM_MODEL, "mode": "agent" if agent else "pipeline",
+                "llm": llm.available, "model": s.llm_model, "provider": s.LLM_PROVIDER, "mode": "agent" if agent else "pipeline",
                 "search": s.SEARCH_PROVIDER if llm.available or s.SEARCH_PROVIDER in ("brave", "serpapi") else "none",
                 "places": bool(s.GOOGLE_PLACES_API_KEY), "whatsapp": "validator" if s.WHATSAPP_VALIDATOR_URL else "link",
                 "max_attachment_mb": s.MAX_ATTACHMENT_MB, "registry_max_age_days": s.REGISTRY_MAX_AGE_DAYS,

@@ -11,7 +11,10 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .llm_openai import OpenAILLM
 
 DEFAULT_MODEL = "claude-opus-5-5"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
@@ -37,7 +40,17 @@ def _extract_json(text: str) -> Any:
     raise ValueError("no JSON in model answer")
 
 
+def make_llm(settings) -> "LLM | OpenAILLM":
+    """The configured provider: LLM_PROVIDER=anthropic (default) or openai. Unavailable when no key."""
+    if settings.LLM_PROVIDER.lower() == "openai":
+        from .llm_openai import OpenAILLM
+        return OpenAILLM(api_key=settings.OPENAI_API_KEY, model=settings.OPENAI_MODEL)
+    return LLM(api_key=settings.ANTHROPIC_API_KEY, model=settings.LLM_MODEL)
+
+
 class LLM:
+    provider = "anthropic"
+
     def __init__(self, api_key: str = "", model: str = DEFAULT_MODEL, client: Any = None, use_fallbacks: bool = True):
         self.model = model or DEFAULT_MODEL
         self.use_fallbacks = use_fallbacks

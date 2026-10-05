@@ -26,7 +26,7 @@ class Context:
 
 
 def build_context(settings: Settings | None = None, *, demo: bool = False) -> Context:
-    from ..llm import LLM
+    from ..llm import make_llm
     from ..outlook.auth import MicrosoftAuth, TokenStore
     from ..outlook.graph import GraphClient
     from ..research.crawler import Fetcher
@@ -37,7 +37,7 @@ def build_context(settings: Settings | None = None, *, demo: bool = False) -> Co
     s = settings or Settings()
     s.check_production()
     registry = Registry(s.registry_dir / "registry.sqlite")
-    llm = LLM(api_key=s.ANTHROPIC_API_KEY, model=s.LLM_MODEL)
+    llm = make_llm(s)
     researcher = Researcher(llm=llm if llm.available else None, search=make_search_provider(s),
                             places=GooglePlaces(s.GOOGLE_PLACES_API_KEY) if s.GOOGLE_PLACES_API_KEY else None,
                             fetcher=Fetcher(timeout=s.FETCH_TIMEOUT), default_country=s.DEFAULT_COUNTRY,

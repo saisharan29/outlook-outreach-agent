@@ -76,13 +76,16 @@ On Windows, `start.bat` does all of this; on macOS or Linux, `./start.sh` (creat
 
 | Variable | Role | Needed? |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Understands free-text requests in FR/EN; web search for company identification and directories when no search API is set; names the decision-maker from page excerpts | Recommended. Without it: regex request parser, owner types the address (`email: …`) |
+| `ANTHROPIC_API_KEY` (or `LLM_PROVIDER=openai` + `OPENAI_API_KEY`) | Understands free-text requests in FR/EN; web search for company identification and directories when no search API is set; names the decision-maker from page excerpts | Recommended. One key of either provider is enough. Without any: regex request parser, owner types the address (`email: …`) |
 | `SEARCH_PROVIDER` + `BRAVE_API_KEY` / `SERPAPI_KEY` | A search API instead of Claude's web search | Optional |
 | `GOOGLE_PLACES_API_KEY` | Google Business profile: the reliable phone number source | Optional, recommended |
 | `WHATSAPP_VALIDATOR_URL` / `_KEY` | Section 6 option A (third-party check) | Optional; B + C are built in |
 
 Model: `claude-opus-5-5` with the server-side refusal fallback enabled (`fallbacks: "default"`);
-the call falls back to the plain endpoint on platforms that reject the parameter.
+the call falls back to the plain endpoint on platforms that reject the parameter. With
+`LLM_PROVIDER=openai`, the same three capabilities run on OpenAI (`OPENAI_MODEL`, default `gpt-5`):
+structured outputs for request parsing, the Responses API web search for research, function calling
+for the agent mode.
 
 ## What the owner provides (spec section 12)
 
