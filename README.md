@@ -70,7 +70,7 @@ sharing link when a preview video is above `MAX_ATTACHMENT_MB`. Set `FILE_SOURCE
 read the folders through Graph; keep `local` when the folder is on the machine (or synced by the
 OneDrive client, in which case sharing links still work through Graph).
 
-On Windows, `start.bat` does all of this (creates `.env` on first run, installs, checks, starts, opens the browser).
+On Windows, `start.bat` does all of this; on macOS or Linux, `./start.sh` (creates `.env` on first run, installs, checks, starts, opens the browser).
 
 ### Research keys (phase 2)
 

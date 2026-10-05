@@ -7,7 +7,7 @@
 - CSV downloads of the registry and the action log; `/healthz`; log file `Agency/Registry/agent.log`.
 - Login protected against password guessing (5 failures lock the address for 60 s).
 - `scripts/acceptance.py`: runs the research on a CSV of companies without creating drafts and reports the hit rate (acceptance criterion: 80 %).
-- `start.ps1` / `start.bat` for Windows; GitHub Actions run the tests on every push.
+- `start.ps1` / `start.bat` for Windows, `start.sh` for macOS and Linux; GitHub Actions run the tests on every push.
 - `.env` read without Docker; `ONEDRIVE_PATH` for sharing links from a synced folder.
 
 ## 1.0.0 — 2026-10-05

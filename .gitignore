@@ -9,3 +9,4 @@ Agency/Registry/*.csv
 Agency/Videos/*.mp4
 Agency/Quotes/*.pdf
 Agency/Registry/*.log*
+.venv/
