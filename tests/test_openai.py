@@ -63,3 +63,22 @@ def test_research_falls_back_without_web_search():
                              responses=SimpleNamespace(create=lambda **kw: (_ for _ in ()).throw(RuntimeError("no web search"))))
     out = OpenAILLM(client=client).research(system="s", user="u", schema={"type": "object", "properties": {"urls": {"type": "array", "items": {"type": "string"}}}, "required": ["urls"]})
     assert out == {"urls": []}
+
+
+def test_gemini_uses_openai_compatible_endpoint(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "g")
+    s = Settings()
+    llm = make_llm(s)
+    assert llm.provider == "gemini" and llm.available and s.llm_model == "gemini-2.5-flash" and s.llm_key_present
+    assert "generativelanguage.googleapis.com" in str(llm._client.base_url)
+
+
+def test_gemini_research_skips_openai_web_search():
+    calls = []
+    def create(**kw):
+        calls.append(kw)
+        return _msg(content=json.dumps({"urls": ["https://x"]}))
+    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)),
+                             responses=SimpleNamespace(create=lambda **kw: (_ for _ in ()).throw(AssertionError("must not be called"))))
+    out = OpenAILLM(client=client, provider="gemini").research(system="s", user="u", schema={"type": "object", "properties": {"urls": {"type": "array", "items": {"type": "string"}}}, "required": ["urls"]})
+    assert out == {"urls": ["https://x"]} and len(calls) == 1

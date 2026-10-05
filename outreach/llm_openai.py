@@ -1,5 +1,6 @@
-"""OpenAI as the model provider (LLM_PROVIDER=openai): the same three capabilities as llm.LLM,
-so the rest of the product does not know which provider is behind it.
+"""OpenAI as the model provider (LLM_PROVIDER=openai), and Gemini through Google's OpenAI-compatible
+endpoint (LLM_PROVIDER=gemini): the same three capabilities as llm.LLM, so the rest of the product
+does not know which provider is behind it.
 
 - structured(): Chat Completions with a strict JSON schema.
 - research():   Responses API with OpenAI's web search tool, then a structured conversion.
@@ -13,6 +14,7 @@ import json
 from typing import Any, Callable
 
 DEFAULT_MODEL = "gpt-5"
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
 def _schema_for_openai(schema: dict) -> dict:
@@ -34,12 +36,14 @@ def _schema_for_openai(schema: dict) -> dict:
 class OpenAILLM:
     provider = "openai"
 
-    def __init__(self, api_key: str = "", model: str = DEFAULT_MODEL, client: Any = None):
+    def __init__(self, api_key: str = "", model: str = DEFAULT_MODEL, client: Any = None,
+                 base_url: str = "", provider: str = "openai"):
         self.model = model or DEFAULT_MODEL
+        self.provider = provider
         self._client = client
         if client is None and api_key:
             from openai import OpenAI
-            self._client = OpenAI(api_key=api_key)
+            self._client = OpenAI(api_key=api_key, base_url=base_url or None)
 
     @property
     def available(self) -> bool:
@@ -66,6 +70,8 @@ class OpenAILLM:
                  max_tokens: int = 16000, allowed_domains: list[str] | None = None) -> dict:
         text = ""
         try:
+            if self.provider != "openai":
+                raise RuntimeError("web search only through OpenAI's Responses API")
             r = self._client.responses.create(model=self.model, instructions=system, input=user,
                                               tools=[{"type": "web_search"}])
             text = getattr(r, "output_text", "") or ""

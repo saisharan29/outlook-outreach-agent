@@ -41,10 +41,15 @@ def _extract_json(text: str) -> Any:
 
 
 def make_llm(settings) -> "LLM | OpenAILLM":
-    """The configured provider: LLM_PROVIDER=anthropic (default) or openai. Unavailable when no key."""
-    if settings.LLM_PROVIDER.lower() == "openai":
+    """The configured provider: LLM_PROVIDER=anthropic (default), openai or gemini. Unavailable when no key."""
+    provider = settings.LLM_PROVIDER.lower()
+    if provider == "openai":
         from .llm_openai import OpenAILLM
         return OpenAILLM(api_key=settings.OPENAI_API_KEY, model=settings.OPENAI_MODEL)
+    if provider == "gemini":
+        from .llm_openai import GEMINI_BASE_URL, OpenAILLM
+        return OpenAILLM(api_key=settings.GEMINI_API_KEY, model=settings.GEMINI_MODEL, base_url=GEMINI_BASE_URL,
+                         provider="gemini")
     return LLM(api_key=settings.ANTHROPIC_API_KEY, model=settings.LLM_MODEL)
 
 

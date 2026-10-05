@@ -86,7 +86,8 @@ This is what lets the agent create drafts in the owner's Outlook without ever be
 | Key | Where | Needed for |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | https://console.anthropic.com → API keys | understanding requests, web research, decision-maker names. Without it the owner types the address in each request (`email: …`). |
-| `OPENAI_API_KEY` + `LLM_PROVIDER=openai` | https://platform.openai.com/api-keys | the same, with a ChatGPT API key instead of Claude. One of the two is enough. |
+| `OPENAI_API_KEY` + `LLM_PROVIDER=openai` | https://platform.openai.com/api-keys | the same, with a ChatGPT API key instead of Claude. |
+| `GEMINI_API_KEY` + `LLM_PROVIDER=gemini` | https://aistudio.google.com/apikey (free tier, no card) | the same, with a Google Gemini key. One key of any provider is enough. |
 | `GOOGLE_PLACES_API_KEY` | https://console.cloud.google.com → APIs & Services → enable **Places API (New)** → Credentials | phone numbers from the Google Business profile. Optional but recommended. |
 | `BRAVE_API_KEY` or `SERPAPI_KEY` | optional | a search API instead of Claude's web search |
 

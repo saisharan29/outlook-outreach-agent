@@ -44,12 +44,14 @@ def _int(name: str, default: int) -> int:
 @dataclass
 class Settings:
     # --- Agent core -------------------------------------------------------
-    # "anthropic" (Claude, default) or "openai" (a ChatGPT API key). One key is enough.
+    # "anthropic" (Claude, default), "openai" (a ChatGPT API key) or "gemini" (a Google AI Studio key). One key is enough.
     LLM_PROVIDER: str = field(default_factory=lambda: _env("LLM_PROVIDER", "anthropic"))
     ANTHROPIC_API_KEY: str = field(default_factory=lambda: _env("ANTHROPIC_API_KEY"))
     LLM_MODEL: str = field(default_factory=lambda: _env("LLM_MODEL", "claude-opus-5-5"))
     OPENAI_API_KEY: str = field(default_factory=lambda: _env("OPENAI_API_KEY"))
     OPENAI_MODEL: str = field(default_factory=lambda: _env("OPENAI_MODEL", "gpt-5"))
+    GEMINI_API_KEY: str = field(default_factory=lambda: _env("GEMINI_API_KEY"))
+    GEMINI_MODEL: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-2.5-flash"))
     # "pipeline": rules run the steps in order, the model helps with language (default).
     # "agent": the model drives the tools itself (same tools, same guardrails).
     AGENT_MODE: str = field(default_factory=lambda: _env("AGENT_MODE", "pipeline"))
@@ -117,11 +119,12 @@ class Settings:
 
     @property
     def llm_model(self) -> str:
-        return self.OPENAI_MODEL if self.LLM_PROVIDER.lower() == "openai" else self.LLM_MODEL
+        return {"openai": self.OPENAI_MODEL, "gemini": self.GEMINI_MODEL}.get(self.LLM_PROVIDER.lower(), self.LLM_MODEL)
 
     @property
     def llm_key_present(self) -> bool:
-        return bool(self.OPENAI_API_KEY if self.LLM_PROVIDER.lower() == "openai" else self.ANTHROPIC_API_KEY)
+        return bool({"openai": self.OPENAI_API_KEY, "gemini": self.GEMINI_API_KEY}.get(self.LLM_PROVIDER.lower(),
+                                                                                       self.ANTHROPIC_API_KEY))
 
     def microsoft_configured(self) -> bool:
         return bool(self.MS_CLIENT_ID and self.MS_CLIENT_SECRET)

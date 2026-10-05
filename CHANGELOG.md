@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.2.0 — 2026-10-05
+- Gemini as a third provider (`LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL`) through Google's OpenAI-compatible endpoint.
 - OpenAI as an alternative model provider (`LLM_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL`): request parsing, web research and the agent mode run on either provider.
 - `start.sh` for macOS and Linux.
 
