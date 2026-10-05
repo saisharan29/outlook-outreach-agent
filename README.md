@@ -6,7 +6,9 @@ from the owner's folders, fills the owner's template and creates the draft in Ou
 sends:** the Microsoft permission to send is not requested, the client blocks every send endpoint,
 and there is no send tool.
 
-Built from the technical specification of 5 October 2026 (sections 1 to 12). Deployment steps: [DEPLOY.md](DEPLOY.md). Every functional
+Built from the technical specification of 5 October 2026 (sections 1 to 12). Deployment: [DEPLOY.md](DEPLOY.md). Taking over the project: [HANDOVER.md](HANDOVER.md). Changes: [CHANGELOG.md](CHANGELOG.md).
+
+![tests](https://github.com/saisharan29/outlook-outreach-agent/actions/workflows/tests.yml/badge.svg) Every functional
 requirement FR-01 to FR-28 and every guardrail of section 8 is implemented and covered by a test.
 
 | | |
@@ -27,7 +29,7 @@ python -m outreach.cli demo                     # writes ./Agency with templates
 DEMO=1 python -m outreach.cli "Preview email for Boulangerie Martin, Lyon"
 DEMO=1 python -m outreach.cli "Devis pour Garage Dupont; Boulangerie Martin, Lyon; Fleuriste Rose, Nantes"
 DEMO=1 python -m outreach.cli serve             # the chat on http://localhost:8080 (password: APP_PASSWORD, empty = none)
-python -m pytest tests -q                       # 81 tests
+python -m pytest tests -q                       # 88 tests
 ```
 
 In demo mode drafts are written to `Agency/Registry/demo_drafts.json` instead of Outlook, and
@@ -67,6 +69,8 @@ permissions once. Point `AGENCY_ROOT` at the owner's folder (see [Folders](#fold
 sharing link when a preview video is above `MAX_ATTACHMENT_MB`. Set `FILE_SOURCE=onedrive` to
 read the folders through Graph; keep `local` when the folder is on the machine (or synced by the
 OneDrive client, in which case sharing links still work through Graph).
+
+On Windows, `start.bat` does all of this (creates `.env` on first run, installs, checks, starts, opens the browser).
 
 ### Research keys (phase 2)
 
@@ -239,6 +243,7 @@ python -m outreach.cli "Quote email for Garage Dupont"   # one request from the 
 python -m outreach.cli status                             # connection state, folders, last actions
 python -m outreach.cli export                             # registry.csv + actions.csv
 python -m outreach.cli verify-cannot-send                 # the "cannot send" probe
+python scripts/acceptance.py companies.csv --out results.csv   # research on a list, no drafts, hit rate
 python -m outreach.cli serve                              # the web chat
 python -m pytest tests -q
 ```

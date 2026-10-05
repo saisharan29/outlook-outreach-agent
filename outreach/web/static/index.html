@@ -222,13 +222,13 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 
     <!-- companies -->
     <section class="view hidden" id="view-companies"><div class="wrap">
-      <div class="toolbar"><input id="cfilter" placeholder="Filter by name, city or email"><button class="btn" id="export">Export CSV</button></div>
+      <div class="toolbar"><input id="cfilter" placeholder="Filter by name, city or email"><a class="btn" href="/api/export/registry.csv">Download CSV</a></div>
       <div id="companies"></div>
     </div></section>
 
     <!-- activity -->
     <section class="view hidden" id="view-activity"><div class="wrap">
-      <div class="toolbar"><span class="muted" id="actcount"></span><span style="flex:1"></span><button class="btn" id="actreload">Refresh</button></div>
+      <div class="toolbar"><span class="muted" id="actcount"></span><span style="flex:1"></span><a class="btn" href="/api/export/actions.csv">Download CSV</a><button class="btn" id="actreload">Refresh</button></div>
       <div id="activity"></div>
     </div></section>
 
@@ -356,7 +356,6 @@ function renderCompanies(){const f=($('#cfilter').value||'').toLowerCase();const
     <td><button class="btn sm ${c.do_not_contact?'':'danger'}" data-dnc="${esc(c.name)}|${esc(c.city)}|${c.do_not_contact?0:1}">${c.do_not_contact?'Allow again':'Do not contact'}</button></td></tr>`).join('')}</tbody></table>`;
   $$('[data-dnc]').forEach(b=>b.onclick=async()=>{const [name,city,v]=b.dataset.dnc.split('|');await api('/api/registry/do_not_contact',{method:'POST',body:JSON.stringify({name,city,value:v==='1'})});toast(v==='1'?name+' marked do-not-contact':name+' can be contacted again');loadCompanies();});}
 $('#cfilter').oninput=renderCompanies;
-$('#export').onclick=async()=>{const r=await api('/api/registry/export',{method:'POST'});toast('Written: '+r.registry_csv);};
 
 /* ---------- activity ---------- */
 async function loadActivity(){const a=(await api('/api/log')).actions;$('#actcount').textContent=a.length+' entries';
@@ -387,10 +386,10 @@ function renderSettings(){const s=STATUS;if(!s)return;const stat=(k,v,sub)=>`<di
   <h2 class="sec">Actions</h2><div style="display:flex;gap:8px;flex-wrap:wrap">
     ${!s.outlook_connected&&s.microsoft_configured&&!s.demo?'<a class="btn primary" href="/auth/microsoft">Connect Outlook</a>':''}
     ${s.outlook_connected&&!s.demo?'<button class="btn danger" id="disconnect">Disconnect Outlook</button>':''}
-    <button class="btn" id="export2">Export registry to CSV</button></div>
+    <a class="btn" href="/api/export/registry.csv">Download registry CSV</a><a class="btn" href="/api/export/actions.csv">Download action log CSV</a></div>
   <p class="muted" style="margin-top:18px">Version ${esc(s.version)}. The agent requests no permission to send mail; the permission list is User.Read, Mail.ReadWrite, Files.ReadWrite, offline_access.</p>`;
   const d=$('#disconnect');if(d)d.onclick=async()=>{if(confirm('Disconnect Outlook? Sign in again to create drafts.')){await api('/auth/microsoft/disconnect',{method:'POST'});await refreshStatus();renderSettings();}};
-  $('#export2').onclick=async()=>{const r=await api('/api/registry/export',{method:'POST'});toast('Written: '+r.registry_csv);};}
+}
 
 /* ---------- boot ---------- */
 (async()=>{const p=new URLSearchParams(location.search);

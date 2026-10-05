@@ -73,3 +73,18 @@ def test_no_password_mode(ctx, monkeypatch):
     c = client(ctx, monkeypatch, password="")
     assert c.get("/api/status").json()["signed_in"]
     assert c.post("/api/chat", json={"message": "status"}).json()["text"].startswith("Outlook")
+
+
+def test_health_exports_and_login_lock(ctx, monkeypatch):
+    c = client(ctx, monkeypatch)
+    assert c.get("/healthz").json()["ok"]
+    c.post("/api/chat", json={"message": "Quote email for Garage Dupont"})
+    reg = c.get("/api/export/registry.csv")
+    assert reg.status_code == 200 and "Garage Dupont" in reg.text and "attachment" in reg.headers["content-disposition"]
+    acts = c.get("/api/export/actions.csv")
+    assert "draft_created" in acts.text and c.get("/api/export/nope.csv").status_code == 404
+    assert (ctx.settings.registry_dir / "agent.log").exists()
+    fresh = TestClient(create_app(ctx.settings, ctx=ctx, demo=True))
+    for _ in range(5):
+        assert fresh.post("/api/login", json={"password": "wrong"}).status_code == 401
+    assert fresh.post("/api/login", json={"password": "pw"}).status_code == 429

@@ -1,0 +1,4 @@
+name,city,website,expected_email
+Boulangerie Martin,Lyon,,
+Garage Dupont,Villeurbanne,garage-dupont.fr,
+Fleuriste Rose,Nantes,,contact@fleuriste-rose.fr

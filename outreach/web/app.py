@@ -6,15 +6,18 @@ cookie, enough for v1 with a single user; the registry and the log are on disk.
 """
 from __future__ import annotations
 
+import csv
 import hashlib
 import hmac
+import io
+import logging
 import secrets
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .. import __version__
@@ -25,6 +28,7 @@ from ..agent.pipeline import Pipeline
 from ..agent.report import question_to_dict, report_to_dict
 from ..config import Settings
 from ..llm import LLM
+from ..logging_setup import setup_logging
 from ..naming import parse_filename
 from ..templates import PLACEHOLDER, TemplateError, parse_template
 
@@ -64,6 +68,9 @@ def _now() -> str:
 def create_app(settings: Settings | None = None, ctx: Context | None = None, demo: bool = False) -> FastAPI:
     s = settings or Settings()
     context = ctx or build_context(s, demo=demo)
+    log_ = setup_logging(s.registry_dir)
+    log_.info("app start version=%s mode=%s demo=%s files=%s", __version__, s.AGENT_MODE, demo, s.FILE_SOURCE)
+    failed_logins: dict[str, list[float]] = {}
     llm = LLM(api_key=s.ANTHROPIC_API_KEY, model=s.LLM_MODEL)
     pipeline = Pipeline(context, llm=llm if llm.available else None)
     agent = AgentLoop(context, llm) if (s.AGENT_MODE == "agent" and llm.available) else None
@@ -83,10 +90,17 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
         return sessions.setdefault(sid, Session())
 
     @app.post("/api/login")
-    def login(body: Login, response: Response):
+    def login(body: Login, request: Request, response: Response):
+        ip = request.client.host if request.client else "?"
+        recent = [t for t in failed_logins.get(ip, []) if time.time() - t < 60]
+        if len(recent) >= 5:
+            raise HTTPException(429, "Too many attempts. Wait a minute.")
         if s.APP_PASSWORD and not hmac.compare_digest(body.password, s.APP_PASSWORD):
+            failed_logins[ip] = recent + [time.time()]
+            log_.warning("failed login from %s", ip)
             time.sleep(0.5)
             raise HTTPException(401, "Wrong password.")
+        failed_logins.pop(ip, None)
         sid = secrets.token_urlsafe(16)
         response.set_cookie("ooda_session", f"{sid}.{_sign(s.SECRET_KEY, sid)}", httponly=True, samesite="lax",
                             secure=s.PUBLIC_URL.startswith("https"), max_age=30 * 86400)
@@ -102,6 +116,12 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
     @app.get("/", response_class=HTMLResponse)
     def index():
         return (STATIC / "index.html").read_text(encoding="utf-8")
+
+    @app.get("/healthz")
+    def healthz():
+        g = context.graph
+        return {"ok": True, "version": __version__, "outlook": bool(g is not None and g.connected()),
+                "templates_ok": all(context.templates.available().values())}
 
     @app.get("/api/status")
     def status(request: Request):
@@ -138,10 +158,14 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
         if not text:
             raise HTTPException(400, "Write a request first.")
         session.messages.append({"role": "owner", "text": text, "at": _now()})
+        log_.info("request: %s", text[:200])
+        t0 = time.time()
         try:
             reply = agent.handle(text, session) if agent else pipeline.handle(text, session)
             reports = [report_to_dict(r) for r in session.reports]
+            log_.info("done in %.1fs: %s", time.time() - t0, ", ".join(f"{r['company_label']}={r['status']}" for r in reports) or "no report")
         except Exception as exc:
+            log_.exception("request failed")
             reply = f"Something failed: {type(exc).__name__}: {exc}. Nothing was created unless a report says so."
             reports = []
         entry = {"role": "agent", "text": reply, "reports": reports, "at": _now(),
@@ -185,6 +209,28 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
     def export(session: Session = Depends(current_session)):
         comp, acts = context.registry.export_csv()
         return {"registry_csv": str(comp), "actions_csv": str(acts)}
+
+    @app.get("/api/export/{which}.csv")
+    def export_download(which: str, session: Session = Depends(current_session)):
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        if which == "registry":
+            rows = [c.to_dict() for c in context.registry.all_companies()]
+            cols = list(rows[0].keys()) if rows else ["name"]
+            w.writerow(cols)
+            for r in rows:
+                r["aliases"] = "; ".join(r["aliases"])
+                w.writerow([r.get(c, "") for c in cols])
+        elif which == "actions":
+            w.writerow(["date", "company", "email_type", "recipient", "file", "result", "detail"])
+            for a in reversed(context.registry.actions(100000)):
+                w.writerow([a.at, a.company, a.email_type, a.recipient, a.file, a.result, a.detail])
+        else:
+            raise HTTPException(404, "Unknown export.")
+        buf.seek(0)
+        stamp = datetime.now().strftime("%Y-%m-%d")
+        return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                                 headers={"Content-Disposition": f'attachment; filename="{which}-{stamp}.csv"'})
 
     @app.get("/api/templates")
     def templates(session: Session = Depends(current_session)):
