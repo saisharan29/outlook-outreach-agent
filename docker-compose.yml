@@ -1,0 +1,11 @@
+services:
+  agent:
+    build: .
+    env_file: .env
+    environment:
+      AGENCY_ROOT: /data/Agency
+    ports: ["8080:8080"]
+    volumes:
+      # Point ./Agency at the owner's folder (or the OneDrive-synced folder) on the host.
+      - ./Agency:/data/Agency
+    restart: unless-stopped

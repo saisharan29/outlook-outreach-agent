@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Outreach drafts</title>
+<style>
+  :root { --bg:#f6f5f2; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e4e2dc; --accent:#0f6b4f; --warn:#b4541c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141413; --card:#1f1f1d; --ink:#ececе7; --ink:#ecece7; --muted:#9a9a94; --line:#33332f; --accent:#4cc39a; --warn:#f0a06a; } }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0; flex:1 }
+  .pill { font-size:12px; padding:3px 8px; border:1px solid var(--line); border-radius:999px; color:var(--muted) }
+  .pill.ok { border-color:var(--accent); color:var(--accent) } .pill.bad { border-color:var(--warn); color:var(--warn) }
+  main { max-width:820px; margin:0 auto; padding:16px 16px 120px; }
+  .msg { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:10px 0; white-space:pre-wrap; overflow-wrap:anywhere }
+  .msg.me { background:transparent; border-style:dashed; color:var(--muted) }
+  .msg h3 { margin:0 0 6px; font-size:15px } .msg h2 { margin:0 0 8px; font-size:16px }
+  .msg strong { color:var(--warn) } .msg a { color:var(--accent) }
+  form.compose { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .row { max-width:820px; margin:0 auto; display:flex; gap:8px }
+  textarea, input { flex:1; font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); resize:none; min-height:44px; max-height:140px }
+  button { font:inherit; padding:10px 16px; border:0; border-radius:10px; background:var(--accent); color:#fff; cursor:pointer } button:disabled { opacity:.5 }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); padding:4px 10px; font-size:13px }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 } .chips button { background:var(--card); color:var(--ink); border:1px solid var(--line); font-size:13px; padding:6px 10px }
+  #login { max-width:360px; margin:60px auto; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px }
+  .hidden { display:none }
+</style>
+</head>
+<body>
+<header>
+  <h1>Outreach drafts</h1>
+  <span id="outlook" class="pill">Outlook…</span>
+  <span id="files" class="pill">files…</span>
+  <span id="mode" class="pill"></span>
+  <button id="connect" class="ghost hidden">Connect Outlook</button>
+</header>
+<main>
+  <div id="login" class="hidden">
+    <p>Owner password</p>
+    <form id="loginform"><div class="row"><input type="password" id="pw" autocomplete="current-password"><button>Sign in</button></div></form>
+    <p id="loginerr" style="color:var(--warn)"></p>
+  </div>
+  <div id="chat" class="hidden">
+    <div class="msg">One message in, one Outlook draft out. I never send anything.
+Examples: <em>Preview email for Boulangerie Martin, Lyon</em> · <em>Quote email for Garage Dupont</em> · <em>Devis pour Garage Dupont; Fleuriste Rose, Nantes</em></div>
+    <div class="chips">
+      <button type="button" data-q="status">status</button>
+      <button type="button" data-q="help">help</button>
+    </div>
+    <div id="log"></div>
+  </div>
+</main>
+<form class="compose hidden" id="compose">
+  <div class="row"><textarea id="text" placeholder="Preview email for … , City" rows="1"></textarea><button id="send">Send</button></div>
+</form>
+<script>
+const $ = s => document.querySelector(s);
+const log = $('#log');
+function esc(t){ return t.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function md(t){
+  let h = esc(t);
+  h = h.replace(/^### (.*)$/gm, '<h3>$1</h3>').replace(/^## (.*)$/gm, '<h2>$1</h2>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|\s)_([^_\n]+?)_(?=\s|$)/gm, '$1<em>$2</em>');
+  h = h.replace(/(https?:\/\/[^\s)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return h;
+}
+function add(text, me){ const d = document.createElement('div'); d.className = 'msg' + (me ? ' me' : ''); d.innerHTML = me ? esc(text) : md(text); log.appendChild(d); window.scrollTo(0, document.body.scrollHeight); return d; }
+async function status(){
+  const r = await fetch('/api/status'); const s = await r.json();
+  $('#outlook').textContent = s.outlook_connected ? 'Outlook: ' + (s.outlook_account || 'connected') : (s.microsoft_configured ? 'Outlook: not connected' : 'Outlook: not configured');
+  $('#outlook').className = 'pill ' + (s.outlook_connected ? 'ok' : 'bad');
+  $('#files').textContent = 'files: ' + s.file_source + ' · templates ' + (s.templates.preview.join('/') || '—') + ' / ' + (s.templates.quote.join('/') || '—');
+  $('#mode').textContent = (s.demo ? 'DEMO · ' : '') + (s.llm ? s.model : 'no AI key') + ' · ' + s.mode;
+  $('#connect').classList.toggle('hidden', s.outlook_connected || !s.microsoft_configured || s.demo || !s.signed_in);
+  const need = s.needs_password && !s.signed_in;
+  $('#login').classList.toggle('hidden', !need); $('#chat').classList.toggle('hidden', need); $('#compose').classList.toggle('hidden', need);
+  return s;
+}
+$('#connect').onclick = () => location.href = '/auth/microsoft';
+$('#loginform').onsubmit = async e => { e.preventDefault(); const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: $('#pw').value})});
+  if (r.ok) { $('#loginerr').textContent=''; status(); } else { $('#loginerr').textContent = (await r.json()).error || 'Wrong password'; } };
+async function send(text){
+  if (!text.trim()) return; add(text, true); $('#text').value=''; $('#send').disabled = true;
+  const w = add('…', false);
+  try { const r = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
+    const j = await r.json(); w.innerHTML = md(j.reply || j.error || 'no answer'); }
+  catch (e) { w.textContent = 'Network error: ' + e; }
+  $('#send').disabled = false; window.scrollTo(0, document.body.scrollHeight); status();
+}
+$('#compose').onsubmit = e => { e.preventDefault(); send($('#text').value); };
+$('#text').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('#text').value); } });
+document.querySelectorAll('.chips button').forEach(b => b.onclick = () => send(b.dataset.q));
+status();
+if (location.search.includes('connected=1')) { history.replaceState({}, '', '/'); add('Outlook connected. Drafts will appear in your Drafts folder.', false); }
+</script>
+</body>
+</html>

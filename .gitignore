@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+Agency/Registry/*.sqlite
+Agency/Registry/*.enc
+Agency/Registry/*.json
+Agency/Registry/*.csv
+Agency/Videos/*.mp4
+Agency/Quotes/*.pdf

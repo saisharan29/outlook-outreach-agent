@@ -1,0 +1,8 @@
+fastapi==0.142.2
+uvicorn[standard]==0.50.2
+httpx==0.28.1
+anthropic==1.11.0
+dnspython==2.8.0
+phonenumbers==9.0.40
+cryptography==49.0.0
+pytest==9.1.1
