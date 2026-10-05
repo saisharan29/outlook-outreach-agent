@@ -1,0 +1,28 @@
+# Production on one small server: the agent + Caddy for HTTPS.
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  agent:
+    build: .
+    env_file: .env
+    environment:
+      AGENCY_ROOT: ${AGENCY_ROOT_IN_CONTAINER:-/data/Agency}
+      ENVIRONMENT: production
+      PORT: "8080"
+    volumes:
+      - ./Agency:/data/Agency
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    env_file: .env
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [agent]
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

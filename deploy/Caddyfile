@@ -1,0 +1,10 @@
+# HTTPS in front of the chat. Caddy gets a Let's Encrypt certificate for DOMAIN as soon as
+# the DNS record points to this server, and renews it. DOMAIN and ACME_EMAIL come from .env.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy agent:8080
+}
