@@ -101,8 +101,8 @@ Windows: install Python 3.12 from https://www.python.org/downloads/ (tick **Add 
 PATH**) and Git from https://git-scm.com. macOS: `brew install python git`.
 
 ```bash
-git clone https://github.com/saisharan29/alix-immo-os.git
-cd alix-immo-os/outreach-agent
+git clone https://github.com/saisharan29/outlook-outreach-agent.git
+cd outlook-outreach-agent
 pip install -r requirements.txt
 ```
 
@@ -151,7 +151,7 @@ To use it from the phone on the same Wi-Fi, set `HOST=0.0.0.0` (the default) and
 ### B1. Server and domain
 
 - A small Ubuntu 24.04 server in the EU (1 vCPU, 1 GB RAM is enough; Hetzner CX22, Scaleway
-  Stardust, OVH Starter, or Oracle Always Free as in `docs/DEPLOY.md` of the main project).
+  Stardust, OVH Starter, or Oracle Cloud Always Free).
 - A DNS record: `outreach.your-domain.com` → **A** → the server's IP (TTL 600). Wait until
   `ping outreach.your-domain.com` answers from your computer.
 
@@ -160,10 +160,9 @@ To use it from the phone on the same Wi-Fi, set `HOST=0.0.0.0` (the default) and
 ```bash
 ssh ubuntu@<server-ip>
 sudo apt-get update && sudo apt-get install -y git
-git clone https://github.com/saisharan29/alix-immo-os.git
-cd alix-immo-os
+git clone https://github.com/saisharan29/outlook-outreach-agent.git
+cd outlook-outreach-agent
 sudo ./deploy/install-server.sh        # Docker, firewall (22, 80, 443), swap, security updates
-cd outreach-agent
 ```
 
 ### B3. Configure
@@ -206,7 +205,7 @@ Caddy obtains the certificate within a minute. Open https://outreach.your-domain
 ### B5. Updates and backups
 
 ```bash
-cd ~/alix-immo-os && git pull && cd outreach-agent
+cd ~/outlook-outreach-agent && git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 

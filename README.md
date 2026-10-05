@@ -6,7 +6,7 @@ from the owner's folders, fills the owner's template and creates the draft in Ou
 sends:** the Microsoft permission to send is not requested, the client blocks every send endpoint,
 and there is no send tool.
 
-Built from the technical specification of 5 October 2026 (sections 1 to 12). Every functional
+Built from the technical specification of 5 October 2026 (sections 1 to 12). Deployment steps: [DEPLOY.md](DEPLOY.md). Every functional
 requirement FR-01 to FR-28 and every guardrail of section 8 is implemented and covered by a test.
 
 | | |
@@ -20,7 +20,8 @@ requirement FR-01 to FR-28 and every guardrail of section 8 is implemented and c
 ## Demo mode (no keys, no account)
 
 ```bash
-cd outreach-agent
+git clone https://github.com/saisharan29/outlook-outreach-agent.git
+cd outlook-outreach-agent
 pip install -r requirements.txt
 python -m outreach.cli demo                     # writes ./Agency with templates, sample files, 2 companies
 DEMO=1 python -m outreach.cli "Preview email for Boulangerie Martin, Lyon"
