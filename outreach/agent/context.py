@@ -52,8 +52,7 @@ def build_context(settings: Settings | None = None, *, demo: bool = False) -> Co
     if s.FILE_SOURCE == "onedrive" and graph is not None and not demo:
         files: FileStore = OneDriveFileStore(graph, s.AGENCY_ROOT)
     else:
-        files = LocalFileStore(Path(s.AGENCY_ROOT), graph=None if demo else graph,
-                               onedrive_root=s.AGENCY_ROOT if not Path(s.AGENCY_ROOT).is_absolute() else "")
+        files = LocalFileStore(Path(s.AGENCY_ROOT), graph=None if demo else graph, onedrive_root=s.ONEDRIVE_PATH)
     agency_name = ""
     about = s.templates_dir / "agency.txt"
     if about.exists():

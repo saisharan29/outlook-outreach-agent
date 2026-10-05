@@ -56,7 +56,7 @@ class AgentLoop:
         messages = session.history + [{"role": "user", "content": text}]
         reply, history = self.llm.run_tools(system=SYSTEM_PROMPT, messages=messages, tools=TOOL_SCHEMAS,
                                             execute=execute)
-        session.history = history
+        session.history = history[-60:]   # keep the last turns only; the registry holds the facts
         # A fixed trailer the model cannot alter: what the tools actually did.
         drafts = [c for c in tools.calls if c.name == "create_draft"]
         if drafts:

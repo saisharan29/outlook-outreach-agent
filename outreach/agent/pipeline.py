@@ -9,12 +9,17 @@ from __future__ import annotations
 
 import traceback
 
+import re
+
 from ..registry import now_iso
 from .context import Context
 from .intent import parse, resolve_answer
 from .models import CompanyReport, CompanyRequest, Intent, Question, Session
 from .report import HELP_TEXT, render_batch
 from .tools import ToolError, Tools, owner_typed_emails
+
+
+CANCEL = re.compile(r"^\s*(?:cancel|annule[rz]?|forget it|laisse tomber|stop all|clear)\s*\.?\s*$", re.I)
 
 
 class Pipeline:
@@ -27,6 +32,14 @@ class Pipeline:
         """One owner message in, one reply out. Keeps the pending questions in the session."""
         for e in owner_typed_emails(text):
             self.ctx.owner_supplied_recipients.add(e)
+        session.reports = []
+        if session.pending and CANCEL.match(text):
+            n = len(session.pending)
+            for q in session.pending:
+                self.ctx.registry.log(company=q.request.name, email_type=q.request.email_type, result="cancelled",
+                                      detail=f"owner cancelled: {q.kind}")
+            session.pending.clear()
+            return f"Cancelled {n} pending question{'s' if n > 1 else ''}. Nothing was created."
         if session.pending:
             q = session.pending[0]
             outcome = resolve_answer(text, q)

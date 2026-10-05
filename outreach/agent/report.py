@@ -10,7 +10,7 @@ STATUS_LABEL = {
     "refused": "refused",
     "failed": "failed",
 }
-STATUS_ICON = {"draft_created": "✅", "question": "❓", "no_draft": "⛔", "refused": "🚫", "failed": "⚠️"}
+STATUS_ICON = {"draft_created": "[OK]", "question": "[?]", "no_draft": "[NO DRAFT]", "refused": "[REFUSED]", "failed": "[FAILED]"}
 
 
 def _conf(c: str) -> str:
@@ -110,3 +110,16 @@ Examples:
 Files must follow the naming convention: CompanyName_City_preview_YYYY-MM-DD.mp4 and
 CompanyName_City_quote_YYYY-MM-DD.pdf, in the Videos and Quotes folders.
 Type 'status' for the connection state and the last actions."""
+
+
+def question_to_dict(q: Question) -> dict:
+    return {"kind": q.kind, "text": q.text, "options": q.options, "details": q.details,
+            "company": q.request.label, "email_type": q.request.email_type}
+
+
+def report_to_dict(r: CompanyReport) -> dict:
+    return {"company_label": r.request.label, "email_type": r.request.email_type, "status": r.status,
+            "status_label": STATUS_LABEL.get(r.status, r.status), "company": r.company, "email": r.email,
+            "phone": r.phone, "whatsapp": r.whatsapp, "file": r.file, "draft": r.draft, "sources": r.sources,
+            "attention": r.attention, "message": r.message,
+            "question": question_to_dict(r.question) if r.question else None}

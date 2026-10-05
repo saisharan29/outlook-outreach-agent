@@ -66,6 +66,9 @@ class Settings:
     QUOTES_FOLDER: str = field(default_factory=lambda: _env("QUOTES_FOLDER", "Quotes"))
     TEMPLATES_FOLDER: str = field(default_factory=lambda: _env("TEMPLATES_FOLDER", "Templates"))
     REGISTRY_FOLDER: str = field(default_factory=lambda: _env("REGISTRY_FOLDER", "Registry"))
+    # When FILE_SOURCE=local and the folder is synced by the OneDrive client, the same folder's path
+    # inside OneDrive (e.g. "Agency") lets the agent create sharing links for large videos.
+    ONEDRIVE_PATH: str = field(default_factory=lambda: _env("ONEDRIVE_PATH"))
     MAX_ATTACHMENT_MB: int = field(default_factory=lambda: _int("MAX_ATTACHMENT_MB", 20))
 
     # --- Registry ----------------------------------------------------------

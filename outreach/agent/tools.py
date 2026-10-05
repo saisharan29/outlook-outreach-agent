@@ -210,7 +210,6 @@ class Tools:
             raise ToolError(f"'{phone}' is not a valid phone number.")
         s = self.ctx.settings
         st = _check_whatsapp(p, validator_url=s.WHATSAPP_VALIDATOR_URL, validator_key=s.WHATSAPP_VALIDATOR_KEY)
-        row = (self.ctx.registry.find(phone) or [None])[0]  # no-op lookup by name; status stored by the pipeline
         return {"phone": p.international, "e164": p.e164, "kind": p.kind, "status": st.status, "label": st.label,
                 "hint": st.hint, "link": st.link, "method": st.method, "checked_at": now_iso()}
 

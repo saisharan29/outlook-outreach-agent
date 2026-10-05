@@ -3,97 +3,404 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Outreach drafts</title>
+<meta name="color-scheme" content="light dark">
+<title>Outreach Drafts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f5f8b'/%3E%3Cpath d='M8 11h16v11H8z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M8 12l8 6 8-6' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
 <style>
-  :root { --bg:#f6f5f2; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e4e2dc; --accent:#0f6b4f; --warn:#b4541c; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#141413; --card:#1f1f1d; --ink:#ececе7; --ink:#ecece7; --muted:#9a9a94; --line:#33332f; --accent:#4cc39a; --warn:#f0a06a; } }
-  * { box-sizing:border-box }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
-  header { position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  header h1 { font-size:16px; margin:0; flex:1 }
-  .pill { font-size:12px; padding:3px 8px; border:1px solid var(--line); border-radius:999px; color:var(--muted) }
-  .pill.ok { border-color:var(--accent); color:var(--accent) } .pill.bad { border-color:var(--warn); color:var(--warn) }
-  main { max-width:820px; margin:0 auto; padding:16px 16px 120px; }
-  .msg { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:10px 0; white-space:pre-wrap; overflow-wrap:anywhere }
-  .msg.me { background:transparent; border-style:dashed; color:var(--muted) }
-  .msg h3 { margin:0 0 6px; font-size:15px } .msg h2 { margin:0 0 8px; font-size:16px }
-  .msg strong { color:var(--warn) } .msg a { color:var(--accent) }
-  form.compose { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
-  .row { max-width:820px; margin:0 auto; display:flex; gap:8px }
-  textarea, input { flex:1; font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); resize:none; min-height:44px; max-height:140px }
-  button { font:inherit; padding:10px 16px; border:0; border-radius:10px; background:var(--accent); color:#fff; cursor:pointer } button:disabled { opacity:.5 }
-  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); padding:4px 10px; font-size:13px }
-  .chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 } .chips button { background:var(--card); color:var(--ink); border:1px solid var(--line); font-size:13px; padding:6px 10px }
-  #login { max-width:360px; margin:60px auto; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px }
-  .hidden { display:none }
+:root{
+  --bg:#f4f5f7;--surface:#ffffff;--surface-2:#f0f2f5;--line:#e2e5ea;--ink:#141923;--ink-2:#4b5563;--ink-3:#7a8494;
+  --accent:#1f5f8b;--accent-ink:#ffffff;--accent-soft:#e6eff7;
+  --ok:#1b7f4b;--ok-soft:#e3f3ea;--warn:#9a5a00;--warn-soft:#fff3dd;--bad:#b3261e;--bad-soft:#fbe9e7;--info:#345;--info-soft:#eaf0f6;
+  --radius:12px;--shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+}
+:root[data-theme="dark"]{
+  --bg:#0f1216;--surface:#171b21;--surface-2:#1f242c;--line:#2a313b;--ink:#e8ebef;--ink-2:#aeb6c2;--ink-3:#7c8695;
+  --accent:#6aa8d8;--accent-ink:#0b1420;--accent-soft:#1a2a3b;
+  --ok:#5ccb8b;--ok-soft:#14301f;--warn:#f0b35a;--warn-soft:#352a12;--bad:#ff8a80;--bad-soft:#3a1a18;--info:#aeb6c2;--info-soft:#222a33;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1216;--surface:#171b21;--surface-2:#1f242c;--line:#2a313b;--ink:#e8ebef;--ink-2:#aeb6c2;--ink-3:#7c8695;
+  --accent:#6aa8d8;--accent-ink:#0b1420;--accent-soft:#1a2a3b;
+  --ok:#5ccb8b;--ok-soft:#14301f;--warn:#f0b35a;--warn-soft:#352a12;--bad:#ff8a80;--bad-soft:#3a1a18;--info:#aeb6c2;--info-soft:#222a33;
+  --shadow:0 1px 2px rgba(0,0,0,.4);}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:232px 1fr;height:100dvh}
+/* ---- sidebar ---- */
+.side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;font-weight:600;font-size:15px}
+.brand svg{width:28px;height:28px;flex:none}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border:0;background:transparent;border-radius:8px;color:var(--ink-2);cursor:pointer}
+.nav button svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button:hover{background:var(--surface-2);color:var(--ink)}
+.nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.side .spacer{flex:1}
+.conn{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px}
+.conn .row{display:flex;align-items:center;gap:8px;min-width:0}
+.conn .row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.warn{background:var(--warn)}
+.side .foot{display:flex;gap:6px;padding-top:6px}
+/* ---- main ---- */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);min-height:56px}
+.top h1{font-size:16px;margin:0;font-weight:600;flex:1}
+.view{flex:1;overflow:auto;min-height:0}
+.wrap{max-width:860px;margin:0 auto;padding:20px}
+/* ---- buttons ---- */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--ink);white-space:nowrap}
+.btn:hover{background:var(--surface-2)} .btn:disabled{opacity:.5;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:7px}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn{width:34px;height:34px;padding:0;justify-content:center}
+/* ---- chat ---- */
+.chat{display:flex;flex-direction:column;height:100%}
+.thread{flex:1;overflow:auto;padding:20px}
+.thread .wrap{display:flex;flex-direction:column;gap:14px;padding:0}
+.msg{max-width:100%}
+.msg.owner{align-self:flex-end;max-width:78%}
+.msg.owner .bubble{background:var(--accent);color:var(--accent-ink);border-radius:14px 14px 4px 14px;padding:10px 14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg .meta{font-size:11.5px;color:var(--ink-3);margin:4px 4px 0;text-align:right}
+.msg.agent .meta{text-align:left}
+.text{background:var(--surface);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:12px 14px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:var(--shadow)}
+.text.plain{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.empty{text-align:center;color:var(--ink-2);padding:48px 16px 24px}
+.empty h2{font-weight:600;font-size:18px;margin:0 0 6px;color:var(--ink)}
+.examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.examples button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;cursor:pointer;color:var(--ink-2);font-size:13px}
+.examples button:hover{border-color:var(--accent);color:var(--accent)}
+/* report cards */
+.batch{font-weight:600;color:var(--ink-2);font-size:13px;padding:2px 4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card .head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.card .head .title{font-weight:600;font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .head .type{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge.ok{background:var(--ok-soft);color:var(--ok)} .badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)} .badge.info{background:var(--info-soft);color:var(--info)}
+.badge.n{font-weight:500}
+.rows{display:grid;grid-template-columns:110px 1fr;gap:8px 14px;padding:12px 16px;font-size:13.5px}
+.rows .k{color:var(--ink-3);padding-top:1px}
+.rows .v{min-width:0;overflow-wrap:anywhere}
+.rows .v .sub{color:var(--ink-3);font-size:12.5px;margin-top:2px}
+.rows .v a{text-decoration:none} .rows .v a:hover{text-decoration:underline}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--ink-2);background:var(--surface-2)}
+.card .actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 12px}
+.note{margin:0 16px 12px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 8px 8px 0;padding:10px 12px;font-size:13px}
+.note .t{font-weight:600;color:var(--warn);margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.note ul{margin:0;padding-left:18px} .note li{margin:2px 0}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)} .note.bad .t{color:var(--bad)}
+.q{margin:0 16px 14px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--accent-soft);border-radius:10px;padding:12px 14px}
+.q .t{font-weight:600;margin-bottom:8px}
+.q .opts{display:flex;flex-direction:column;gap:6px}
+.q .opts button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;gap:10px}
+.q .opts button:hover{border-color:var(--accent)}
+.q .opts button b{color:var(--accent);min-width:18px}
+.q .yn{display:flex;gap:8px;margin-top:8px}
+.q .details{font-size:12.5px;color:var(--ink-2);margin:6px 0 0;padding-left:16px}
+details.src{padding:0 16px 12px;font-size:12.5px;color:var(--ink-2)}
+details.src summary{cursor:pointer;color:var(--ink-3);user-select:none}
+details.src ul{margin:6px 0 0;padding-left:18px} details.src li{overflow-wrap:anywhere}
+.pending{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-top:1px solid var(--line);padding:8px 20px;font-size:12.5px;color:var(--ink-2)}
+.pending b{color:var(--accent)}
+.compose{border-top:1px solid var(--line);background:var(--surface);padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+.compose .inner{max-width:860px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
+.compose textarea{flex:1;resize:none;min-height:44px;max-height:160px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);outline:none}
+.compose textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.compose .hint{max-width:860px;margin:6px auto 0;font-size:11.5px;color:var(--ink-3)}
+.typing{display:inline-flex;gap:4px;align-items:center;padding:12px 14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-3);animation:b 1.2s infinite} .typing i:nth-child(2){animation-delay:.2s} .typing i:nth-child(3){animation-delay:.4s}
+@keyframes b{0%,80%,100%{opacity:.3}40%{opacity:1}}
+/* ---- tables ---- */
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:13px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td .sub{color:var(--ink-3);font-size:12px}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.muted{color:var(--ink-3)}
+/* ---- templates ---- */
+.tpl{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.tpl .list{display:flex;flex-direction:column;gap:4px}
+.tpl .list button{text-align:left;padding:8px 10px;border:1px solid transparent;background:transparent;border-radius:8px;cursor:pointer;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}
+.tpl .list button.active{background:var(--surface);border-color:var(--line);color:var(--ink);font-weight:600}
+.tpl .list button small{color:var(--ink-3);font-weight:400}
+.editor{display:flex;flex-direction:column;gap:10px}
+.editor textarea{width:100%;min-height:380px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;resize:vertical}
+.editor .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.editor .msg-ok{color:var(--ok)} .editor .msg-bad{color:var(--bad)}
+/* ---- settings ---- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.stat .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600}
+.stat .v{font-size:15px;font-weight:600;margin-top:4px;overflow-wrap:anywhere}
+.stat .s{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin:22px 0 10px;font-weight:600}
+/* ---- login ---- */
+.login{max-width:380px;margin:12vh auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:var(--shadow)}
+.login h2{margin:0 0 4px;font-size:18px} .login p{margin:0 0 16px;color:var(--ink-2)}
+.login input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-bottom:10px}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+/* ---- phone ---- */
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .side{flex-direction:row;border-right:0;border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));order:2;align-items:center}
+  .brand,.side .spacer,.conn,.side .foot{display:none}
+  .nav{flex-direction:row;width:100%;justify-content:space-around}
+  .nav button{flex-direction:column;gap:3px;font-size:11px;padding:6px 4px;justify-content:center}
+  .top{padding:10px 14px}
+  .wrap,.thread{padding:14px}
+  .msg.owner{max-width:90%}
+  .rows{grid-template-columns:1fr;gap:2px 0} .rows .k{margin-top:8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  .tpl{grid-template-columns:1fr} .tpl .list{flex-direction:row;flex-wrap:wrap}
+  .compose{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  .compose .hint{display:none}
+  table{display:block;overflow-x:auto}
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>Outreach drafts</h1>
-  <span id="outlook" class="pill">Outlook…</span>
-  <span id="files" class="pill">files…</span>
-  <span id="mode" class="pill"></span>
-  <button id="connect" class="ghost hidden">Connect Outlook</button>
-</header>
-<main>
-  <div id="login" class="hidden">
-    <p>Owner password</p>
-    <form id="loginform"><div class="row"><input type="password" id="pw" autocomplete="current-password"><button>Sign in</button></div></form>
-    <p id="loginerr" style="color:var(--warn)"></p>
-  </div>
-  <div id="chat" class="hidden">
-    <div class="msg">One message in, one Outlook draft out. I never send anything.
-Examples: <em>Preview email for Boulangerie Martin, Lyon</em> · <em>Quote email for Garage Dupont</em> · <em>Devis pour Garage Dupont; Fleuriste Rose, Nantes</em></div>
-    <div class="chips">
-      <button type="button" data-q="status">status</button>
-      <button type="button" data-q="help">help</button>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M8 11h16v11H8z" fill="none" stroke="var(--accent-ink)" stroke-width="2"/><path d="M8 12l8 6 8-6" fill="none" stroke="var(--accent-ink)" stroke-width="2"/></svg>
+      <span>Outreach Drafts</span>
     </div>
-    <div id="log"></div>
-  </div>
-</main>
-<form class="compose hidden" id="compose">
-  <div class="row"><textarea id="text" placeholder="Preview email for … , City" rows="1"></textarea><button id="send">Send</button></div>
-</form>
+    <nav class="nav">
+      <button data-view="chat" class="active"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.5-4.5A8 8 0 1 1 21 12z"/></svg>Chat</button>
+      <button data-view="companies"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2"/></svg>Companies</button>
+      <button data-view="activity"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Activity</button>
+      <button data-view="templates"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Templates</button>
+      <button data-view="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Status</button>
+    </nav>
+    <div class="spacer"></div>
+    <div class="conn" id="conn"></div>
+    <div class="foot">
+      <button class="btn sm" id="theme" title="Theme">Theme</button>
+      <button class="btn sm hidden" id="logout">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top"><h1 id="title">Chat</h1><div id="topActions"></div></div>
+
+    <!-- login -->
+    <section class="view hidden" id="view-login">
+      <div class="login">
+        <h2>Outreach Drafts</h2><p>Owner password</p>
+        <form id="loginform"><input type="password" id="pw" autocomplete="current-password" placeholder="Password"><button class="btn primary" style="width:100%;justify-content:center">Sign in</button></form>
+        <p id="loginerr" style="color:var(--bad);margin-top:10px"></p>
+      </div>
+    </section>
+
+    <!-- chat -->
+    <section class="view chat" id="view-chat">
+      <div class="thread" id="thread"><div class="wrap" id="log"></div></div>
+      <div class="pending hidden" id="pendingbar"></div>
+      <form class="compose" id="compose">
+        <div class="inner">
+          <textarea id="text" rows="1" placeholder="Preview email for Boulangerie Martin, Lyon"></textarea>
+          <button class="btn primary" id="send" type="submit">Send</button>
+        </div>
+        <div class="hint">Enter to send, Shift+Enter for a new line. Several companies: separate them with “;”. Give an address yourself with “email: …”, a site with “site: …”.</div>
+      </form>
+    </section>
+
+    <!-- companies -->
+    <section class="view hidden" id="view-companies"><div class="wrap">
+      <div class="toolbar"><input id="cfilter" placeholder="Filter by name, city or email"><button class="btn" id="export">Export CSV</button></div>
+      <div id="companies"></div>
+    </div></section>
+
+    <!-- activity -->
+    <section class="view hidden" id="view-activity"><div class="wrap">
+      <div class="toolbar"><span class="muted" id="actcount"></span><span style="flex:1"></span><button class="btn" id="actreload">Refresh</button></div>
+      <div id="activity"></div>
+    </div></section>
+
+    <!-- templates -->
+    <section class="view hidden" id="view-templates"><div class="wrap">
+      <p class="muted" style="margin:0 0 14px">The owner writes the emails; the agent fills placeholders only. First line <code>Subject: …</code>, a blank line, then the body. The next draft uses what is saved here.</p>
+      <div class="tpl"><div class="list" id="tpllist"></div>
+        <div class="editor"><textarea id="tpltext" spellcheck="false"></textarea>
+          <div class="bar"><button class="btn primary" id="tplsave">Save</button><span id="tplmsg"></span><span style="flex:1"></span><span class="muted" id="tplph"></span></div>
+        </div></div>
+    </div></section>
+
+    <!-- settings / status -->
+    <section class="view hidden" id="view-settings"><div class="wrap" id="settings"></div></section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-const $ = s => document.querySelector(s);
-const log = $('#log');
-function esc(t){ return t.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function md(t){
-  let h = esc(t);
-  h = h.replace(/^### (.*)$/gm, '<h3>$1</h3>').replace(/^## (.*)$/gm, '<h2>$1</h2>');
-  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|\s)_([^_\n]+?)_(?=\s|$)/gm, '$1<em>$2</em>');
-  h = h.replace(/(https?:\/\/[^\s)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-  return h;
-}
-function add(text, me){ const d = document.createElement('div'); d.className = 'msg' + (me ? ' me' : ''); d.innerHTML = me ? esc(text) : md(text); log.appendChild(d); window.scrollTo(0, document.body.scrollHeight); return d; }
-async function status(){
-  const r = await fetch('/api/status'); const s = await r.json();
-  $('#outlook').textContent = s.outlook_connected ? 'Outlook: ' + (s.outlook_account || 'connected') : (s.microsoft_configured ? 'Outlook: not connected' : 'Outlook: not configured');
-  $('#outlook').className = 'pill ' + (s.outlook_connected ? 'ok' : 'bad');
-  $('#files').textContent = 'files: ' + s.file_source + ' · templates ' + (s.templates.preview.join('/') || '—') + ' / ' + (s.templates.quote.join('/') || '—');
-  $('#mode').textContent = (s.demo ? 'DEMO · ' : '') + (s.llm ? s.model : 'no AI key') + ' · ' + s.mode;
-  $('#connect').classList.toggle('hidden', s.outlook_connected || !s.microsoft_configured || s.demo || !s.signed_in);
-  const need = s.needs_password && !s.signed_in;
-  $('#login').classList.toggle('hidden', !need); $('#chat').classList.toggle('hidden', need); $('#compose').classList.toggle('hidden', need);
-  return s;
-}
-$('#connect').onclick = () => location.href = '/auth/microsoft';
-$('#loginform').onsubmit = async e => { e.preventDefault(); const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: $('#pw').value})});
-  if (r.ok) { $('#loginerr').textContent=''; status(); } else { $('#loginerr').textContent = (await r.json()).error || 'Wrong password'; } };
-async function send(text){
-  if (!text.trim()) return; add(text, true); $('#text').value=''; $('#send').disabled = true;
-  const w = add('…', false);
-  try { const r = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
-    const j = await r.json(); w.innerHTML = md(j.reply || j.error || 'no answer'); }
-  catch (e) { w.textContent = 'Network error: ' + e; }
-  $('#send').disabled = false; window.scrollTo(0, document.body.scrollHeight); status();
-}
-$('#compose').onsubmit = e => { e.preventDefault(); send($('#text').value); };
-$('#text').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('#text').value); } });
-document.querySelectorAll('.chips button').forEach(b => b.onclick = () => send(b.dataset.q));
-status();
-if (location.search.includes('connected=1')) { history.replaceState({}, '', '/'); add('Outlook connected. Drafts will appear in your Drafts folder.', false); }
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let STATUS=null, PENDING=[], TEMPLATES=null, CUR_TPL=null;
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const linkify=t=>esc(t).replace(/(https?:\/\/[^\s)<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+const api=async(path,opt={})=>{const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j;};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);};
+const fmtDate=iso=>{if(!iso)return'';const d=new Date(iso);return d.toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});};
+const conf=c=>({high:['ok','high confidence'],medium:['warn','medium confidence'],low:['bad','low confidence']}[c]||['info',c||'']);
+
+/* ---------- theme ---------- */
+const applyTheme=()=>{const t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;};
+$('#theme').onclick=()=>{const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');localStorage.setItem('theme',cur==='dark'?'light':'dark');applyTheme();};
+applyTheme();
+
+/* ---------- navigation ---------- */
+const TITLES={chat:'Chat',companies:'Companies',activity:'Activity log',templates:'Templates',settings:'Status & connections',login:'Sign in'};
+function show(view){$$('.view').forEach(v=>v.classList.toggle('hidden',v.id!=='view-'+view));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#title').textContent=TITLES[view];
+  $('#topActions').innerHTML=view==='chat'?'<button class="btn sm" id="clear">Clear chat</button>':'';
+  if(view==='chat'){const c=$('#clear');if(c)c.onclick=async()=>{await api('/api/history/clear',{method:'POST'});$('#log').innerHTML='';renderEmpty();};}
+  if(view==='companies')loadCompanies();if(view==='activity')loadActivity();if(view==='templates')loadTemplates();if(view==='settings')renderSettings();
+  if(view!=='login')location.hash=view;}
+$$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
+
+/* ---------- status ---------- */
+async function refreshStatus(){STATUS=await api('/api/status');const s=STATUS;
+  const need=s.needs_password&&!s.signed_in;
+  $('#logout').classList.toggle('hidden',!s.needs_password||!s.signed_in);
+  const o=s.outlook_connected?['ok',s.outlook_account.split(' ')[0]]:s.microsoft_configured?['bad','Outlook not connected']:['warn','Outlook not configured'];
+  $('#conn').innerHTML=`<div class="row"><i class="dot ${o[0]}"></i><span title="${esc(s.outlook_account)}">${esc(o[1])}</span></div>
+    <div class="row"><i class="dot ${s.templates.preview.length&&s.templates.quote.length&&s.signature?'ok':'warn'}"></i><span>${s.videos} videos · ${s.quotes} quotes</span></div>
+    <div class="row"><i class="dot ${s.llm?'ok':'warn'}"></i><span>${s.llm?esc(s.model):'No AI key: type addresses'}</span></div>
+    ${s.demo?'<div class="row"><i class="dot warn"></i><span>Demo mode</span></div>':''}
+    ${!s.outlook_connected&&s.microsoft_configured&&!s.demo&&s.signed_in?'<a href="/auth/microsoft" class="btn sm primary" style="justify-content:center">Connect Outlook</a>':''}`;
+  if(need){show('login');} return s;}
+$('#loginform').onsubmit=async e=>{e.preventDefault();try{await api('/api/login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});$('#loginerr').textContent='';await refreshStatus();show('chat');loadHistory();}catch(err){$('#loginerr').textContent=err.message;}};
+$('#logout').onclick=async()=>{await api('/api/logout',{method:'POST'});location.reload();};
+
+/* ---------- chat rendering ---------- */
+function renderEmpty(){if($('#log').children.length)return;$('#log').innerHTML=`<div class="empty"><h2>One message in, one Outlook draft out.</h2>
+  <div>Name a company and the email type. The agent researches, matches the file, fills your template and creates the draft. It never sends.</div>
+  <div class="examples"><button>Preview email for Boulangerie Martin, Lyon</button><button>Quote email for Garage Dupont</button><button>Devis pour Garage Dupont; Boulangerie Martin, Lyon</button><button>status</button><button>help</button></div></div>`;
+  $$('.examples button').forEach(b=>b.onclick=()=>send(b.textContent));}
+function addOwner(text,at){const d=document.createElement('div');d.className='msg owner';d.innerHTML=`<div class="bubble">${esc(text)}</div><div class="meta">${fmtDate(at)}</div>`;$('#log').appendChild(d);}
+function badge(status){return{draft_created:['ok','Draft created'],question:['info','Needs your answer'],no_draft:['warn','No draft'],refused:['bad','Refused'],failed:['bad','Failed']}[status]||['info',status];}
+function card(r){const [bc,bl]=badge(r.status);const rows=[];
+  if(r.company){const c=r.company;rows.push(['Company',`${esc(c.name||'')}${c.city?' · '+esc(c.city):''}${c.website?' · <a href="'+esc(c.website)+'" target="_blank" rel="noopener">'+esc(c.website.replace(/^https?:\/\//,''))+'</a>':''}<div class="sub">identified via ${esc(c.source||'')}</div>`]);}
+  if(r.email){const e=r.email,[cc,cl]=conf(e.confidence);rows.push(['Recipient',`<b>${esc(e.address)}</b>${e.contact_name?' · '+esc(e.contact_name)+(e.contact_role?', '+esc(e.contact_role):''):''}
+    <div class="sub"><span class="badge ${cc} n">${cl}</span> &nbsp;${esc(e.where||'')}${e.source&&/^https?:/.test(e.source)?' · <a href="'+esc(e.source)+'" target="_blank" rel="noopener">source</a>':e.source?' · '+esc(e.source):''}${e.found_at?' · found '+esc(String(e.found_at).slice(0,10)):''}</div>`]);}
+  else if(r.status!=='question')rows.push(['Recipient','<span class="muted">none found</span>']);
+  if(r.phone){const p=r.phone,w=r.whatsapp,[pc,pl]=conf(p.confidence);const ws=w?{yes:['ok','On WhatsApp'],no:['bad','Not on WhatsApp'],unverified:['warn','WhatsApp unverified']}[w.status]:null;
+    rows.push(['Phone',`<b>${esc(p.international||p.e164)}</b> <span class="muted">(${esc(p.kind)})</span>${w?` &nbsp;<span class="badge ${ws[0]} n">${ws[1]}</span> <span class="muted">${esc(w.hint)}</span>`:''}
+    <div class="sub"><span class="badge ${pc} n">${pl}</span> &nbsp;${esc(p.where||'')}${p.source&&/^https?:/.test(p.source)?' · <a href="'+esc(p.source)+'" target="_blank" rel="noopener">source</a>':''}${w?' · <a href="'+esc(w.link)+'" target="_blank" rel="noopener">Open WhatsApp chat</a>':''}</div>`]);}
+  else if(r.status!=='question')rows.push(['Phone','<span class="muted">none found</span>']);
+  if(r.file){const f=r.file,mode=r.draft?(r.draft.attachment_mode==='link'?'sharing link inserted (above the size limit)':'attached'):'found';rows.push(['File',`${esc(f.name)} <span class="muted">· ${esc(f.size_mb)} MB · ${mode}</span>${f.note?'<div class="sub">'+esc(f.note)+'</div>':''}`]);}
+  if(r.draft){rows.push(['Draft',`Subject “${esc(r.draft.subject)}” · template ${esc(r.draft.template_file)} · ${esc(r.draft.language)}<div class="sub">In the Outlook Drafts folder; review it there, then send.</div>`]);}
+  if(r.message)rows.push(['', `<span>${linkify(r.message)}</span>`]);
+  let html=`<div class="card"><div class="head"><span class="badge ${bc}">${bl}</span><span class="title">${esc(r.company_label)}</span><span class="type">${esc(r.email_type||'')}</span></div>
+    <div class="rows">${rows.map(([k,v])=>`<div class="k">${k}</div><div class="v">${v}</div>`).join('')}</div>`;
+  if(r.draft&&r.draft.web_link&&/^https?:/.test(r.draft.web_link))html+=`<div class="actions"><a class="btn sm primary" href="${esc(r.draft.web_link)}" target="_blank" rel="noopener">Open in Outlook</a></div>`;
+  if(r.question)html+=question(r.question);
+  if(r.attention&&r.attention.length)html+=`<div class="note"><div class="t">Needs your attention</div><ul>${r.attention.map(a=>`<li>${linkify(a)}</li>`).join('')}</ul></div>`;
+  if(r.sources&&r.sources.length)html+=`<details class="src"><summary>Sources checked (${r.sources.length})</summary><ul>${r.sources.map(s=>`<li>${linkify(s)}</li>`).join('')}</ul></details>`;
+  return html+'</div>';}
+function question(q){let h=`<div class="q"><div class="t">${esc(q.text)}</div>`;
+  if(q.options&&q.options.length)h+=`<div class="opts">${q.options.map((o,i)=>`<button data-answer="${i+1}"><b>${i+1}</b><span>${esc(o)}</span></button>`).join('')}</div>`;
+  if(q.details&&q.details.length)h+=`<ul class="details">${q.details.map(d=>`<li>${esc(d.replace(/^- /,''))}</li>`).join('')}</ul>`;
+  if(q.kind==='confirm_duplicate')h+=`<div class="yn"><button class="btn sm primary" data-answer="yes">Yes, create another</button><button class="btn sm" data-answer="no">No</button></div>`;
+  if(q.kind==='email_type')h+=`<div class="yn"><button class="btn sm primary" data-answer="preview">Website preview</button><button class="btn sm primary" data-answer="quote">Quote</button></div>`;
+  if(q.options&&q.options.length)h+=`<div class="yn"><button class="btn sm" data-answer="no">None of these</button></div>`;
+  return h+'</div>';}
+function addAgent(m){const d=document.createElement('div');d.className='msg agent';let inner='';
+  if(m.reports&&m.reports.length){if(m.reports.length>1){const n={};m.reports.forEach(r=>n[r.status]=(n[r.status]||0)+1);inner+=`<div class="batch">${m.reports.length} companies — ${Object.entries(n).map(([s,c])=>c+' '+badge(s)[1].toLowerCase()).join(', ')}</div>`;}
+    inner+=m.reports.map(card).join('');
+  }
+  else{const plain=/^(Outlook:|I turn one message)/.test(m.text||'');inner+=`<div class="text${plain?' plain':''}">${linkify(m.text||'')}</div>`;}
+  d.innerHTML=inner+`<div class="meta">${fmtDate(m.at)}</div>`;$('#log').appendChild(d);
+  d.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{send(b.dataset.answer);d.querySelectorAll('[data-answer]').forEach(x=>x.disabled=true);});}
+function setPending(p){PENDING=p||[];const bar=$('#pendingbar');bar.classList.toggle('hidden',!PENDING.length);if(!PENDING.length)return;const q=PENDING[0];
+  let btns='';if(q.kind==='confirm_duplicate')btns='<button class="btn sm primary" data-pa="yes">Yes</button><button class="btn sm" data-pa="no">No</button>';
+  else if(q.kind==='email_type')btns='<button class="btn sm primary" data-pa="preview">Preview</button><button class="btn sm primary" data-pa="quote">Quote</button>';
+  else if(q.options&&q.options.length)btns=q.options.map((o,i)=>`<button class="btn sm" data-pa="${i+1}" title="${esc(o)}">${i+1}</button>`).join('')+'<button class="btn sm" data-pa="no">None</button>';
+  bar.innerHTML=`<div style="min-width:0;flex:1"><b>${PENDING.length>1?PENDING.length+' questions waiting · ':''}${esc(q.company)}</b> · ${esc(q.text)}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${btns}<button class="btn sm" data-pa="cancel">Cancel all</button></div>`;
+  bar.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>send(b.dataset.pa));}
+function scroll(){const t=$('#thread');t.scrollTop=t.scrollHeight;}
+async function loadHistory(){try{const h=await api('/api/history');$('#log').innerHTML='';h.messages.forEach(m=>m.role==='owner'?addOwner(m.text,m.at):addAgent(m));setPending(h.pending);renderEmpty();scroll();}catch(e){renderEmpty();}}
+async function send(text){text=(text||'').trim();if(!text)return;const empty=$('#log .empty');if(empty)empty.remove();addOwner(text,new Date().toISOString());$('#text').value='';autosize();$('#send').disabled=true;
+  const w=document.createElement('div');w.className='msg agent';w.innerHTML='<div class="text typing"><i></i><i></i><i></i></div>';$('#log').appendChild(w);scroll();
+  try{const m=await api('/api/chat',{method:'POST',body:JSON.stringify({message:text})});w.remove();addAgent(m);setPending(m.pending);}
+  catch(e){w.remove();addAgent({text:'Error: '+e.message,at:new Date().toISOString()});}
+  $('#send').disabled=false;scroll();refreshStatus();$('#text').focus();}
+$('#compose').onsubmit=e=>{e.preventDefault();send($('#text').value);};
+$('#text').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send($('#text').value);}});
+function autosize(){const t=$('#text');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,160)+'px';}
+$('#text').addEventListener('input',autosize);
+
+/* ---------- companies ---------- */
+let COMPANIES=[];
+async function loadCompanies(){COMPANIES=(await api('/api/registry')).companies;renderCompanies();}
+function renderCompanies(){const f=($('#cfilter').value||'').toLowerCase();const rows=COMPANIES.filter(c=>!f||[c.name,c.city,c.email,...(c.aliases||[])].join(' ').toLowerCase().includes(f));
+  if(!rows.length){$('#companies').innerHTML='<p class="muted">No companies yet. They appear here after the first request.</p>';return;}
+  $('#companies').innerHTML=`<table><thead><tr><th>Company</th><th>Contact</th><th>Phone</th><th>Drafts</th><th></th></tr></thead><tbody>${rows.map(c=>`<tr>
+    <td><b>${esc(c.name)}</b>${c.city?' · '+esc(c.city):''}<div class="sub">${c.website?'<a href="'+esc(c.website)+'" target="_blank" rel="noopener">'+esc(c.website.replace(/^https?:\/\//,''))+'</a>':''}${c.aliases&&c.aliases.length?' · aka '+esc(c.aliases.join(', ')):''}</div>${c.do_not_contact?'<span class="badge bad n" style="margin-top:4px">Do not contact</span>':''}</td>
+    <td>${c.email?esc(c.email):'<span class="muted">—</span>'}<div class="sub">${c.contact_name?esc(c.contact_name)+(c.contact_role?', '+esc(c.contact_role):'')+' · ':''}${c.email_confidence?esc(c.email_confidence)+' · ':''}${c.email_found_at?esc(c.email_found_at.slice(0,10)):''}</div></td>
+    <td>${c.phone?esc(c.phone):'<span class="muted">—</span>'}<div class="sub">${c.whatsapp_status?'WhatsApp: '+esc(c.whatsapp_status):''}</div></td>
+    <td>${c.preview_drafted_at?'preview '+esc(c.preview_drafted_at.slice(0,10))+'<br>':''}${c.quote_drafted_at?'quote '+esc(c.quote_drafted_at.slice(0,10)):''}${!c.preview_drafted_at&&!c.quote_drafted_at?'<span class="muted">—</span>':''}</td>
+    <td><button class="btn sm ${c.do_not_contact?'':'danger'}" data-dnc="${esc(c.name)}|${esc(c.city)}|${c.do_not_contact?0:1}">${c.do_not_contact?'Allow again':'Do not contact'}</button></td></tr>`).join('')}</tbody></table>`;
+  $$('[data-dnc]').forEach(b=>b.onclick=async()=>{const [name,city,v]=b.dataset.dnc.split('|');await api('/api/registry/do_not_contact',{method:'POST',body:JSON.stringify({name,city,value:v==='1'})});toast(v==='1'?name+' marked do-not-contact':name+' can be contacted again');loadCompanies();});}
+$('#cfilter').oninput=renderCompanies;
+$('#export').onclick=async()=>{const r=await api('/api/registry/export',{method:'POST'});toast('Written: '+r.registry_csv);};
+
+/* ---------- activity ---------- */
+async function loadActivity(){const a=(await api('/api/log')).actions;$('#actcount').textContent=a.length+' entries';
+  const rb=r=>({draft_created:'ok',question:'info',no_draft:'warn',refused:'bad',failed:'bad',cancelled:'info',registry_updated:'info',outlook_connected:'ok',outlook_disconnected:'warn',template_saved:'info'}[r]||'info');
+  $('#activity').innerHTML=a.length?`<table><thead><tr><th>When</th><th>Company</th><th>Type</th><th>Recipient</th><th>File</th><th>Result</th></tr></thead><tbody>${a.map(x=>`<tr><td class="muted">${fmtDate(x.at)}</td><td>${esc(x.company)}</td><td>${esc(x.email_type)}</td><td>${esc(x.recipient)}</td><td>${esc(x.file)}</td><td><span class="badge ${rb(x.result)} n">${esc(x.result.replace(/_/g,' '))}</span>${x.detail?'<div class="sub">'+esc(x.detail)+'</div>':''}</td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nothing yet.</p>';}
+$('#actreload').onclick=loadActivity;
+
+/* ---------- templates ---------- */
+const TPL_LABEL={preview_fr:'Preview · French',preview_en:'Preview · English',quote_fr:'Quote · French',quote_en:'Quote · English',signature_fr:'Signature · French',signature_en:'Signature · English',signature:'Signature · both',agency:'Agency name'};
+async function loadTemplates(){TEMPLATES=await api('/api/templates');$('#tplph').textContent='Placeholders: '+TEMPLATES.placeholders.map(p=>'{{'+p+'}}').join(' ');
+  $('#tpllist').innerHTML=TEMPLATES.files.map(f=>`<button data-tpl="${f.name}" class="${CUR_TPL===f.name?'active':''}"><span>${TPL_LABEL[f.name.replace('.txt','')]||f.name}</span><small>${f.exists?'':'missing'}</small></button>`).join('');
+  $$('[data-tpl]').forEach(b=>b.onclick=()=>openTemplate(b.dataset.tpl));if(!CUR_TPL)openTemplate('preview_fr.txt');else openTemplate(CUR_TPL);}
+function openTemplate(name){CUR_TPL=name;$$('[data-tpl]').forEach(b=>b.classList.toggle('active',b.dataset.tpl===name));const f=TEMPLATES.files.find(x=>x.name===name);$('#tpltext').value=f.content||(name.startsWith('preview')||name.startsWith('quote')?'Subject: \n\n{{greeting}}\n\n\n{{signature}}\n':'');$('#tplmsg').textContent='';}
+$('#tplsave').onclick=async()=>{try{await api('/api/templates/'+CUR_TPL,{method:'PUT',body:JSON.stringify({content:$('#tpltext').value})});$('#tplmsg').className='msg-ok';$('#tplmsg').textContent='Saved. The next draft uses this wording.';const f=TEMPLATES.files.find(x=>x.name===CUR_TPL);f.content=$('#tpltext').value;f.exists=true;loadTemplates();refreshStatus();}catch(e){$('#tplmsg').className='msg-bad';$('#tplmsg').textContent=e.message;}};
+
+/* ---------- settings ---------- */
+function renderSettings(){const s=STATUS;if(!s)return;const stat=(k,v,sub)=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div>${sub?'<div class="s">'+sub+'</div>':''}</div>`;
+  const outlook=s.outlook_connected?`<span class="badge ok">Connected</span><div class="s">${esc(s.outlook_account)}</div>`:s.microsoft_configured?'<span class="badge bad">Not connected</span>':'<span class="badge warn">Not configured</span><div class="s">Set MS_CLIENT_ID and MS_CLIENT_SECRET in .env</div>';
+  $('#settings').innerHTML=`<h2 class="sec" style="margin-top:0">Connections</h2><div class="grid">
+    ${stat('Outlook',outlook,'')}
+    ${stat('Files',esc(s.file_source)+' · '+s.videos+' videos · '+s.quotes+' quotes',esc(s.agency_root)+' · attachment limit '+s.max_attachment_mb+' MB')}
+    ${stat('Templates','preview '+(s.templates.preview.join('/')||'<span class="badge bad n">missing</span>')+' · quote '+(s.templates.quote.join('/')||'<span class="badge bad n">missing</span>'),s.signature?'signature present':'<span class="badge bad n">signature missing</span>')}
+    ${stat('Research',s.llm?esc(s.model):'<span class="badge warn n">no AI key</span>',(s.llm?'request parsing + web research':'addresses typed by the owner')+(s.places?' · Google Places':'')+(s.search!=='none'&&s.search!=='anthropic'?' · '+esc(s.search):''))}
+    ${stat('WhatsApp',s.whatsapp==='validator'?'third-party validator':'wa.me link + mobile/landline hint','status: yes / no / unverified')}
+    ${stat('Mode',esc(s.mode)==='agent'?'Claude drives the tools':'rules run the steps, the model helps with language','registry re-check after '+s.registry_max_age_days+' days'+(s.demo?' · <b>demo mode</b>':''))}
+  </div>
+  <h2 class="sec">Activity</h2><div class="grid">${stat('Companies in registry',s.companies,'')}${stat('Drafts today',s.drafts_today,'')}${stat('Drafts in total',s.drafts_total,'')}${stat('Last action',s.last_action?esc(s.last_action.result.replace(/_/g,' '))+' · '+esc(s.last_action.company):'—',s.last_action?fmtDate(s.last_action.at):'')}</div>
+  <h2 class="sec">Actions</h2><div style="display:flex;gap:8px;flex-wrap:wrap">
+    ${!s.outlook_connected&&s.microsoft_configured&&!s.demo?'<a class="btn primary" href="/auth/microsoft">Connect Outlook</a>':''}
+    ${s.outlook_connected&&!s.demo?'<button class="btn danger" id="disconnect">Disconnect Outlook</button>':''}
+    <button class="btn" id="export2">Export registry to CSV</button></div>
+  <p class="muted" style="margin-top:18px">Version ${esc(s.version)}. The agent requests no permission to send mail; the permission list is User.Read, Mail.ReadWrite, Files.ReadWrite, offline_access.</p>`;
+  const d=$('#disconnect');if(d)d.onclick=async()=>{if(confirm('Disconnect Outlook? Sign in again to create drafts.')){await api('/auth/microsoft/disconnect',{method:'POST'});await refreshStatus();renderSettings();}};
+  $('#export2').onclick=async()=>{const r=await api('/api/registry/export',{method:'POST'});toast('Written: '+r.registry_csv);};}
+
+/* ---------- boot ---------- */
+(async()=>{const p=new URLSearchParams(location.search);
+  const s=await refreshStatus();
+  if(s.needs_password&&!s.signed_in)return;
+  const view=(location.hash||'#chat').slice(1);show(['chat','companies','activity','templates','settings'].includes(view)?view:'chat');
+  await loadHistory();
+  if(p.get('connected')){history.replaceState({},'','/');toast('Outlook connected. Drafts will appear in your Drafts folder.');}
+  if(p.get('auth_error')){history.replaceState({},'','/');addAgent({text:'Microsoft sign-in failed: '+p.get('auth_error'),at:new Date().toISOString()});}
+  setInterval(refreshStatus,60000);})();
 </script>
 </body>
 </html>

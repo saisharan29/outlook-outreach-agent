@@ -65,3 +65,4 @@ class Session:
     pending: list[Question] = field(default_factory=list)
     history: list[dict] = field(default_factory=list)      # AGENT_MODE=agent conversation
     reports: list[CompanyReport] = field(default_factory=list)
+    messages: list[dict] = field(default_factory=list)     # what the chat page shows after a reload
