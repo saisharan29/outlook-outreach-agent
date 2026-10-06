@@ -17,8 +17,9 @@ def test_preview_request_creates_a_correct_draft(ctx):
     assert r.status == "draft_created"
     d = drafts(ctx)[0]
     assert d["to"] == "contact@boulangerie-martin.example"
-    assert d["subject"] == "Votre nouveau site web — Boulangerie Martin"
-    assert "Bonjour Jean Martin," in d["body"] and "{{" not in d["body"] and "Sai Sharan" in d["body"]
+    assert d["subject"] == "Aperçu de votre site web" and d["body_type"] == "HTML"
+    assert ("Bonjour Jean Martin," in d["body"] or "Bonsoir Jean Martin," in d["body"]) and "{{" not in d["body"]
+    assert "Paul Roukoz" in d["body"] and "pour Boulangerie Martin" in d["body"]
     assert d["attachments"][0]["name"].startswith("BoulangerieMartin_Lyon_preview_") and d["attachments"][0]["name"] != "BoulangerieMartin_Lyon_preview_2026-09-20.mp4"
     assert r.whatsapp["link"] == "https://wa.me/33612345678" and r.phone["international"] == "+33 6 12 34 56 78"
     row = ctx.registry.get("Boulangerie Martin", "Lyon")
@@ -29,12 +30,27 @@ def test_preview_request_creates_a_correct_draft(ctx):
 def test_quote_request_uses_pdf_and_quote_template(ctx):
     r = Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote"))
     assert r.status == "draft_created" and drafts(ctx)[0]["attachments"][0]["name"].endswith("quote_2026-10-03.pdf")
-    assert drafts(ctx)[0]["subject"].startswith("Devis") and "Bonjour," in drafts(ctx)[0]["body"]
+    assert drafts(ctx)[0]["subject"].startswith("Devis") and ("Bonjour," in drafts(ctx)[0]["body"] or "Bonsoir," in drafts(ctx)[0]["body"])
 
 
 def test_language_override_and_country(ctx):
-    Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote", language="en"))
-    assert drafts(ctx)[0]["subject"].startswith("Quote for")
+    Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote", language="de"))
+    assert drafts(ctx)[0]["subject"].startswith("Angebot")
+    r = Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote", language="en", confirm_duplicate=True))
+    assert r.status == "refused" and "not one the owner writes in" in r.message
+
+
+def test_cc_recipients_on_every_draft(ctx, monkeypatch):
+    monkeypatch.setattr(ctx.settings, "CC_RECIPIENTS", "sean@webalix.eu, alex@webalix.eu")
+    r = Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote"))
+    assert r.draft["cc"] == ["sean@webalix.eu", "alex@webalix.eu"] and drafts(ctx)[0]["cc"] == ["sean@webalix.eu", "alex@webalix.eu"]
+
+
+def test_missing_mobile_is_flagged(ctx):
+    r = Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote"))
+    assert any("No mobile number" in a for a in r.attention)
+    r2 = Pipeline(ctx).run_company(CompanyRequest(name="Boulangerie Martin", city="Lyon", email_type="quote"))
+    assert not any("mobile" in a.lower() for a in r2.attention)
 
 
 def test_missing_email_type_asks(ctx):
@@ -129,7 +145,7 @@ def test_file_of_another_company_is_refused(ctx):
 
 
 def test_unfilled_placeholder_blocks_the_draft(ctx, agency):
-    (agency / "Templates" / "quote_fr.txt").write_text("Subject: x\n\n{{greeting}} {{mystery}}\n", encoding="utf-8")
+    (agency / "Templates" / "quote_fr.html").write_text("Subject: x\n\n{{greeting}} {{mystery}}\n", encoding="utf-8")
     r = Pipeline(ctx).run_company(CompanyRequest(name="Garage Dupont", email_type="quote"))
     assert r.status == "refused" and "Unknown placeholder" in r.message and not drafts(ctx)
 
@@ -137,7 +153,7 @@ def test_unfilled_placeholder_blocks_the_draft(ctx, agency):
 def test_owner_edits_template_and_next_draft_uses_it(ctx, agency):
     p = Pipeline(ctx)
     p.run_company(CompanyRequest(name="Garage Dupont", email_type="quote"))
-    (agency / "Templates" / "quote_fr.txt").write_text("Subject: Nouveau devis {{company_name}}\n\n{{greeting}}\nTexte neuf.\n{{signature}}\nRépondez stop pour ne plus recevoir.\n", encoding="utf-8")
+    (agency / "Templates" / "quote_fr.html").write_text("Subject: Nouveau devis {{company_name}}\n\n{{greeting}}\nTexte neuf.\n{{signature}}\nRépondez stop pour ne plus recevoir.\n", encoding="utf-8")
     p.run_company(CompanyRequest(name="Garage Dupont", email_type="quote", confirm_duplicate=True))
     assert drafts(ctx)[1]["subject"] == "Nouveau devis Garage Dupont" and "Texte neuf" in drafts(ctx)[1]["body"]
 
@@ -203,4 +219,4 @@ def test_there_is_no_send_tool():
 
 def test_status_text(ctx):
     txt = Pipeline(ctx).status_text()
-    assert "Outlook: connected" in txt and "3 videos" in txt and "preview ['fr', 'en']" in txt
+    assert "Outlook: connected" in txt and "3 videos" in txt and "preview ['fr', 'de', 'lb']" in txt

@@ -12,6 +12,11 @@ def test_phone_international_format_and_kind():
     assert parse_phone("04 72 00 00 00", "FR").kind == "landline"
     assert parse_phone("+44 20 7946 0958", "FR").country == "GB"
     assert parse_phone("12345", "FR") is None
+    # Luxembourg: 621 / 661 / 691 are mobiles, 2x / 4x are landlines
+    lu = parse_phone("691 817 815", "LU")
+    assert lu.e164 == "+352691817815" and lu.kind == "mobile" and lu.international == "+352 691 817 815"
+    assert parse_phone("661 123 456", "LU").kind == "mobile" and parse_phone("621 123 456", "LU").kind == "mobile"
+    assert parse_phone("26 12 34 56", "LU").kind == "landline"
 
 
 def test_email_syntax_and_junk():

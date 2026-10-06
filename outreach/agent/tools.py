@@ -281,7 +281,10 @@ class Tools:
             raise ToolError(f"File {attachment} is no longer in the {folder} folder.")
         # 4. template and language (needed to recognise a same-type duplicate by its subject)
         country = (variables.get("country") or (row.country if row else "") or s.DEFAULT_COUNTRY)
-        language = (variables.get("language") or "").lower() or language_for_country(country, s.DEFAULT_LANGUAGE)
+        language = (variables.get("language") or "").lower() or language_for_country(country, s.DEFAULT_LANGUAGE, s.languages)
+        if language not in s.languages:
+            raise ToolError(f"Language '{language}' is not one the owner writes in ({', '.join(s.languages)}). "
+                            "Say for example 'en français', 'auf Deutsch' or 'op Lëtzebuergesch'.")
         try:
             tpl = self.ctx.templates.load(template, language)
         except TemplateError as exc:
@@ -307,9 +310,9 @@ class Tools:
         if existing and not confirm_duplicate:
             return {"status": "needs_confirmation", "reason": "An email of this type to this company already exists.",
                     "existing": existing, "draft_id": "", "web_link": ""}
-        signature = self.ctx.templates.signature(language)
+        signature = self.ctx.templates.signature(language, html=tpl.html)
         if not signature:
-            raise ToolError(f"No signature file (Templates/signature_{language}.txt). The draft needs the owner's signature.")
+            raise ToolError("No signature file (Templates/signature.html or signature.txt). The draft needs the owner's signature.")
         attachment_mode, preview_link, attention = "attached", "", []
         if template == "preview" and file.size > s.max_attachment_bytes:
             link = self.ctx.files.share_link(file)
@@ -321,23 +324,28 @@ class Tools:
         contact_name = (variables.get("contact_name") or (row.contact_name if row else "") or "").strip()
         vars_ = build_variables(company_name=row.name if row else company_name, language=language,
                                 contact_name=contact_name, city=city or (row.city if row else ""),
-                                preview_link=preview_link, signature=signature, agency_name=self.ctx.agency_name)
+                                preview_link=preview_link, signature=signature, agency_name=self.ctx.agency_name,
+                                timezone=s.TIMEZONE)
         if "preview_link" in tpl.placeholders and not preview_link:
-            vars_["preview_link"] = "" if attachment_mode == "link" else "(voir la vidéo ci-jointe)" if language == "fr" else "(see the attached video)"
+            vars_["preview_link"] = ""
         try:
             email = render(tpl, vars_)
         except TemplateError as exc:
             raise ToolError(str(exc))
         body = email.body
         if "signature" not in tpl.placeholders:
-            body = body.rstrip("\n") + "\n\n" + signature + "\n"
+            body = body.rstrip("\n") + ("<br><br>" if tpl.html else "\n\n") + signature + "\n"
         if attachment_mode == "link" and "preview_link" not in tpl.placeholders:
-            body = body.rstrip("\n") + ("\n\nVidéo : " if language == "fr" else "\n\nVideo: ") + preview_link + "\n"
+            label = {"fr": "Vidéo", "de": "Video", "lb": "Video", "en": "Video"}.get(language, "Video")
+            body = body.rstrip("\n") + (f'<br><br>{label} : <a href="{preview_link}">{preview_link}</a>' if tpl.html
+                                         else f"\n\n{label} : {preview_link}") + "\n"
         if not any(w in body.lower() for w in OPT_OUT_WORDS):
             attention.append("The template has no opt-out sentence (section 9 of the spec asks for one).")
         # 6. the draft, then the attachment; a failed attachment deletes the draft (never half a draft)
+        cc = [a for a in s.cc_list if a.lower() != recipient]
         try:
-            draft = graph.create_draft(to=recipient, subject=email.subject, body=body, to_name=contact_name)
+            draft = graph.create_draft(to=recipient, subject=email.subject, body=body, body_type=email.body_type,
+                                       to_name=contact_name, cc=cc)
         except Exception as exc:
             reg.log(company=company_name, email_type=template, recipient=recipient, file=attachment,
                     result="failed", detail=f"draft not created: {exc}")
@@ -369,9 +377,9 @@ class Tools:
         reg.log(company=c.name, email_type=template, recipient=recipient, file=attachment, result="draft_created",
                 detail=f"draft {draft.draft_id}; attachment {attachment_mode}; template {email.template_file}")
         return {"status": "created", "draft_id": draft.draft_id, "web_link": draft.web_link, "subject": email.subject,
-                "recipient": recipient, "attachment": attachment, "attachment_mode": attachment_mode,
-                "template_file": email.template_file, "language": language, "attention": attention,
-                "existing": existing}
+                "recipient": recipient, "cc": cc, "attachment": attachment, "attachment_mode": attachment_mode,
+                "template_file": email.template_file, "language": language, "format": email.body_type,
+                "attention": attention, "existing": existing}
 
     # --- registry ---------------------------------------------------------------------------------
     def registry_read(self, company: str, city: str = "") -> dict:

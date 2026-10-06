@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 — 2026-10-06
+- The owner's rules: Luxembourg as default country (mobiles 621/661/691), fixed CC recipients on every draft, "Bonjour"/"Bonsoir" by time of day, loud warning when no phone or no mobile is found.
+- HTML emails: `.html` templates and an HTML signature block (Webalix); values escaped, signature kept as HTML.
+- Languages: French, German, Luxembourgish (`SUPPORTED_LANGUAGES`); the owner's real preview email as the French template, with German and Luxembourgish translations to proofread; a request in an unsupported language is refused.
+- Templates page lists one file per language and supports `.html`.
+
 ## 1.3.0 — 2026-10-06
 - Security: server bound to 127.0.0.1 by default, CSRF (Origin / Sec-Fetch-Site) check, security headers incl. CSP, SameSite=Strict cookie, session expiry (12 h idle / 30 days), server-side logout, nothing in the interface usable before sign-in.
 - Speed: companies of a batch run in parallel (4 workers), registry writes serialised with a lock.

@@ -57,5 +57,5 @@ def build_context(settings: Settings | None = None, *, demo: bool = False) -> Co
     about = s.templates_dir / "agency.txt"
     if about.exists():
         agency_name = about.read_text(encoding="utf-8").strip().splitlines()[0] if about.read_text(encoding="utf-8").strip() else ""
-    return Context(settings=s, registry=registry, files=files, templates=TemplateStore(s.templates_dir),
+    return Context(settings=s, registry=registry, files=files, templates=TemplateStore(s.templates_dir, s.languages),
                    researcher=researcher, graph=graph, agency_name=agency_name)

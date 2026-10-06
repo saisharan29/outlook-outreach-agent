@@ -44,16 +44,15 @@ In `Agency/Templates/`, four text files, first line `Subject:`, blank line, then
 
 | File | What |
 |---|---|
-| `preview_fr.txt` | the website-preview email in French |
-| `preview_en.txt` | the same in English |
-| `quote_fr.txt` | the quote email in French |
-| `quote_en.txt` | the same in English |
-| `signature_fr.txt`, `signature_en.txt` | the signature (or one `signature.txt` for both) |
+| `preview_fr.html`, `preview_de.html`, `preview_lb.html` | the website-preview email in French, German, Luxembourgish (HTML) |
+| `quote_fr.html`, `quote_de.html`, `quote_lb.html` | the quote email in the three languages |
+| `signature.html` | the signature block (paste the HTML of the Outlook signature, or keep the generated one) |
 | `agency.txt` | the agency name, one line (used by `{{agency_name}}`) |
 
 Placeholders you can use: `{{company_name}}` `{{contact_name}}` `{{greeting}}` `{{city}}`
 `{{preview_link}}` `{{signature}}` `{{agency_name}}`. `{{greeting}}` becomes "Bonjour Jean
-Martin," when the contact name is known and "Bonjour," otherwise. Keep one opt-out sentence
+Martin," before 18:00 and "Bonsoir Jean Martin," after, "Bonjour," / "Bonsoir," when no name is known.
+Set `CC_RECIPIENTS` in `.env` to the partners who must be in copy of every draft. Keep one opt-out sentence
 ("Répondez stop pour ne plus recevoir de message") — cold B2B email needs it, and the agent flags
 a template that has none. Edit these files any time; the next draft uses the new wording.
 

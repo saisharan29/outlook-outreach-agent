@@ -117,17 +117,33 @@ Open questions of section 12, with the choice made here (change in `.env`):
 | Companies per week? | Sizes the Claude/search spend only; one request runs 4 to 8 model calls at most. |
 | WhatsApp message text? | Not built (out of scope v1); the report already carries the one-tap link. |
 
+## The owner's rules (Webalix, Luxembourg)
+
+From the owner's own emails and briefing of 6 October 2026, all enforced in code:
+
+| Rule | Where |
+|---|---|
+| Luxembourg numbers; a mobile (621 / 661 / 691) is what matters for WhatsApp; **no phone or no mobile is always flagged** | `DEFAULT_COUNTRY=LU`, `phonenumbers`, "Needs your attention" in every report |
+| Sean and Alex always in copy | `CC_RECIPIENTS` in `.env`; shown on every card |
+| The email address comes from the company's own website; if not found, say so | research order FR-07; "no draft, no email" report |
+| "Bonjour" before 18:00, "Bonsoir" after, with the contact's name when known | `{{greeting}}`, `TIMEZONE=Europe/Luxembourg` |
+| The real preview email, HTML, with the Webalix signature block | `Templates/preview_fr.html`, `signature.html` (sent as an HTML email) |
+| French, German, Luxembourgish; no English | `SUPPORTED_LANGUAGES=fr,de,lb`; "auf Deutsch", "op Lëtzebuergesch" in the request; a request for another language is refused |
+
+The German and Luxembourgish templates are translations of the French one and must be proofread by
+the owner before first use (Templates page of the app).
+
 ## Folders and file naming (spec section 7)
 
 ```
 Agency/
   Videos/      BoulangerieMartin_Lyon_preview_2026-10-02.mp4
   Quotes/      BoulangerieMartin_Lyon_quote_2026-10-05.pdf
-  Templates/   preview_fr.txt preview_en.txt quote_fr.txt quote_en.txt signature_fr.txt signature_en.txt agency.txt
+  Templates/   preview_fr.html preview_de.html preview_lb.html quote_fr.html quote_de.html quote_lb.html signature.html agency.txt
   Registry/    registry.sqlite (companies + action log) · registry.csv / actions.csv (export) · microsoft_token.enc
 ```
 
-`CompanyName_City_type_YYYY-MM-DD.ext`. Matching ignores accents, capitals, spacing and
+`CompanyName_City_type_YYYY-MM-DD.ext` (the owner's `Luxtdm.mp4` becomes `Luxtdm_Luxembourg_preview_2026-09-30.mp4`). Matching ignores accents, capitals, spacing and
 punctuation; the newest date wins and the report says which version was picked; the city separates
 two companies with the same name; two different companies that could match stop the agent with a
 question. A file that does not follow the convention is never considered.

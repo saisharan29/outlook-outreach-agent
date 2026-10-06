@@ -195,6 +195,12 @@ class Pipeline:
             if found.get("alternatives"):
                 r.attention.append("Other addresses seen: " + "; ".join(
                     f"{a['address']} ({a['where']}, {a['confidence']})" for a in found["alternatives"][:3]))
+        # The owner's rule: a missing phone, or a phone that is not a mobile, is always said loudly.
+        if not r.phone:
+            r.attention.append("NO PHONE NUMBER FOUND. Look it up by hand before sending.")
+        elif r.phone.get("kind") != "mobile":
+            r.attention.append(f"No mobile number found; only {r.phone.get('international')} ({r.phone.get('kind')}). "
+                               "A mobile (621 / 661 / 691) is better for WhatsApp.")
         # 5. WhatsApp (FR-14 to FR-16)
         if r.phone:
             r.whatsapp = tools.check_whatsapp(r.phone["e164"])

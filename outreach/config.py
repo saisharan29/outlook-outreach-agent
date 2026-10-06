@@ -81,8 +81,13 @@ class Settings:
     REGISTRY_MAX_AGE_DAYS: int = field(default_factory=lambda: _int("REGISTRY_MAX_AGE_DAYS", 90))
 
     # --- Research ----------------------------------------------------------
-    DEFAULT_COUNTRY: str = field(default_factory=lambda: _env("DEFAULT_COUNTRY", "FR"))
+    DEFAULT_COUNTRY: str = field(default_factory=lambda: _env("DEFAULT_COUNTRY", "LU"))
     DEFAULT_LANGUAGE: str = field(default_factory=lambda: _env("DEFAULT_LANGUAGE", "fr"))
+    # The languages the owner writes templates in (the owner's market: French, German, Luxembourgish).
+    SUPPORTED_LANGUAGES: str = field(default_factory=lambda: _env("SUPPORTED_LANGUAGES", "fr,de,lb"))
+    TIMEZONE: str = field(default_factory=lambda: _env("TIMEZONE", "Europe/Luxembourg"))
+    # Always in copy of every draft (comma-separated). The owner's partners.
+    CC_RECIPIENTS: str = field(default_factory=lambda: _env("CC_RECIPIENTS", ""))
     # "anthropic": Claude's own web search (no extra key). "brave" / "serpapi": a search API.
     SEARCH_PROVIDER: str = field(default_factory=lambda: _env("SEARCH_PROVIDER", "anthropic"))
     BRAVE_API_KEY: str = field(default_factory=lambda: _env("BRAVE_API_KEY"))
@@ -116,6 +121,14 @@ class Settings:
     @property
     def max_attachment_bytes(self) -> int:
         return self.MAX_ATTACHMENT_MB * 1024 * 1024
+
+    @property
+    def languages(self) -> list[str]:
+        return [x.strip().lower() for x in self.SUPPORTED_LANGUAGES.split(",") if x.strip()]
+
+    @property
+    def cc_list(self) -> list[str]:
+        return [x.strip() for x in self.CC_RECIPIENTS.replace(";", ",").split(",") if x.strip()]
 
     @property
     def llm_model(self) -> str:

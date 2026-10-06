@@ -24,7 +24,9 @@ TYPE_PHRASE = re.compile(
     rf"(?P<type>{PREVIEW_WORDS}|{QUOTE_WORDS})(?:\s+(?:e-?mail|mail|courriel|brouillon|draft|message))?"
     rf"\s*(?:(?:e-?mail|mail|courriel|brouillon|draft|message)\s+)?(?:for|pour|to|[àa]|de|du|d')?\s*:?\s*", re.I)
 LANG_EN = re.compile(r"\b(?:in\s+english|en\s+anglais|english\s+version|\(en\)|\[en\])\b", re.I)
-LANG_FR = re.compile(r"\b(?:in\s+french|en\s+fran[cç]ais|french\s+version|\(fr\)|\[fr\])\b", re.I)
+LANG_FR = re.compile(r"\b(?:in\s+french|en\s+fran[cç]ais|french\s+version|op\s+franz[eé]isesch|auf\s+franz[öo]sisch|\(fr\)|\[fr\])\b", re.I)
+LANG_DE = re.compile(r"\b(?:in\s+german|en\s+allemand|auf\s+deutsch|german\s+version|op\s+d[äa]itsch|\(de\)|\[de\])\b", re.I)
+LANG_LB = re.compile(r"\b(?:in\s+luxembourgish|en\s+luxembourgeois|op\s+l[ëe]tzebuergesch|auf\s+luxemburgisch|\(lb\)|\[lb\])\b", re.I)
 DNC = re.compile(r"(?:ne\s+(?:plus\s+)?(?:jamais\s+)?contact(?:e|er|ez)\s+(?:plus\s+)?|do\s+not\s+contact|don'?t\s+contact|"
                  r"never\s+contact|stop\s+contacting|blacklist|liste\s+noire\s*:?\s*|ne\s+plus\s+[ée]crire\s+[àa]\s+)\s*(?P<name>.+)", re.I)
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
@@ -98,8 +100,9 @@ def parse_regex(text: str) -> Intent:
     if m:
         req = _parse_item(m.group("name"), "", "")
         return Intent(kind="do_not_contact", companies=[req] if req else [], raw=raw)
-    language = "en" if LANG_EN.search(raw) else "fr" if LANG_FR.search(raw) else ""
-    body = LANG_EN.sub(" ", LANG_FR.sub(" ", raw))
+    language = ("lb" if LANG_LB.search(raw) else "de" if LANG_DE.search(raw) else "en" if LANG_EN.search(raw)
+                else "fr" if LANG_FR.search(raw) else "")
+    body = LANG_LB.sub(" ", LANG_DE.sub(" ", LANG_EN.sub(" ", LANG_FR.sub(" ", raw))))
     email_type = email_type_of(body)
     body = LEAD.sub("", body)
     body = TYPE_PHRASE.sub("", body, count=1) if email_type else body
@@ -117,7 +120,7 @@ INTENT_SCHEMA = {
     "properties": {
         "kind": {"type": "string", "enum": ["draft", "do_not_contact", "help", "status", "unknown"]},
         "email_type": {"type": "string", "enum": ["preview", "quote", ""]},
-        "language": {"type": "string", "enum": ["fr", "en", ""]},
+        "language": {"type": "string", "enum": ["fr", "de", "lb", "en", ""]},
         "companies": {"type": "array", "items": {"type": "object", "properties": {
             "name": {"type": "string"}, "city": {"type": "string"}, "website": {"type": "string"},
             "contact_name": {"type": "string"}, "email": {"type": "string"}},

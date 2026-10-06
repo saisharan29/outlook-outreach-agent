@@ -306,7 +306,7 @@ function card(r){const [bc,bl]=badge(r.status);const rows=[];
     <div class="sub"><span class="badge ${pc} n">${pl}</span> &nbsp;${esc(p.where||'')}${p.source&&/^https?:/.test(p.source)?' · <a href="'+esc(p.source)+'" target="_blank" rel="noopener">source</a>':''}${w?' · <a href="'+esc(w.link)+'" target="_blank" rel="noopener">Open WhatsApp chat</a>':''}</div>`]);}
   else if(r.status!=='question')rows.push(['Phone','<span class="muted">none found</span>']);
   if(r.file){const f=r.file,mode=r.draft?(r.draft.attachment_mode==='link'?'sharing link inserted (above the size limit)':'attached'):'found';rows.push(['File',`${esc(f.name)} <span class="muted">· ${esc(f.size_mb)} MB · ${mode}</span>${f.note?'<div class="sub">'+esc(f.note)+'</div>':''}`]);}
-  if(r.draft){rows.push(['Draft',`Subject “${esc(r.draft.subject)}” · template ${esc(r.draft.template_file)} · ${esc(r.draft.language)}<div class="sub">In the Outlook Drafts folder; review it there, then send.</div>`]);}
+  if(r.draft){rows.push(['Draft',`Subject “${esc(r.draft.subject)}” · ${esc(r.draft.template_file)} · ${esc(r.draft.language)}${r.draft.cc&&r.draft.cc.length?'<div class="sub">CC: '+esc(r.draft.cc.join(', '))+'</div>':''}<div class="sub">In the Outlook Drafts folder; review it there, then send.</div>`]);}
   if(r.message)rows.push(['', `<span>${linkify(r.message)}</span>`]);
   let html=`<div class="card"><div class="head"><span class="badge ${bc}">${bl}</span><span class="title">${esc(r.company_label)}</span><span class="type">${esc(r.email_type||'')}</span></div>
     <div class="rows">${rows.map(([k,v])=>`<div class="k">${k}</div><div class="v">${v}</div>`).join('')}</div>`;
@@ -368,11 +368,14 @@ async function loadActivity(){const a=(await api('/api/log')).actions;$('#actcou
 $('#actreload').onclick=loadActivity;
 
 /* ---------- templates ---------- */
-const TPL_LABEL={preview_fr:'Preview · French',preview_en:'Preview · English',quote_fr:'Quote · French',quote_en:'Quote · English',signature_fr:'Signature · French',signature_en:'Signature · English',signature:'Signature · both',agency:'Agency name'};
+const LANG={fr:'French',de:'German',lb:'Luxembourgish',en:'English'};
+function tplLabel(name){const stem=name.replace(/\.(html|txt)$/,''),ext=name.endsWith('.html')?'HTML':'text';const m=stem.match(/^(preview|quote)_(\w\w)$/);
+  if(m)return (m[1]==='preview'?'Preview':'Quote')+' · '+(LANG[m[2]]||m[2])+' · '+ext;
+  if(stem==='agency')return 'Agency name';const sm=stem.match(/^signature(?:_(\w\w))?$/);if(sm)return 'Signature'+(sm[1]?' · '+(LANG[sm[1]]||sm[1]):'')+' · '+ext;return name;}
 async function loadTemplates(){TEMPLATES=await api('/api/templates');$('#tplph').textContent='Placeholders: '+TEMPLATES.placeholders.map(p=>'{{'+p+'}}').join(' ');
-  $('#tpllist').innerHTML=TEMPLATES.files.map(f=>`<button data-tpl="${f.name}" class="${CUR_TPL===f.name?'active':''}"><span>${TPL_LABEL[f.name.replace('.txt','')]||f.name}</span><small>${f.exists?'':'missing'}</small></button>`).join('');
-  $$('[data-tpl]').forEach(b=>b.onclick=()=>openTemplate(b.dataset.tpl));if(!CUR_TPL)openTemplate('preview_fr.txt');else openTemplate(CUR_TPL);}
-function openTemplate(name){CUR_TPL=name;$$('[data-tpl]').forEach(b=>b.classList.toggle('active',b.dataset.tpl===name));const f=TEMPLATES.files.find(x=>x.name===name);$('#tpltext').value=f.content||(name.startsWith('preview')||name.startsWith('quote')?'Subject: \n\n{{greeting}}\n\n\n{{signature}}\n':'');$('#tplmsg').textContent='';}
+  $('#tpllist').innerHTML=TEMPLATES.files.map(f=>`<button data-tpl="${f.name}" class="${CUR_TPL===f.name?'active':''}"><span>${tplLabel(f.name)}</span><small>${f.exists?'':'missing'}</small></button>`).join('');
+  $$('[data-tpl]').forEach(b=>b.onclick=()=>openTemplate(b.dataset.tpl));if(!CUR_TPL||!TEMPLATES.files.some(f=>f.name===CUR_TPL))openTemplate(TEMPLATES.files[0].name);else openTemplate(CUR_TPL);}
+function openTemplate(name){CUR_TPL=name;$$('[data-tpl]').forEach(b=>b.classList.toggle('active',b.dataset.tpl===name));const f=TEMPLATES.files.find(x=>x.name===name);$('#tpltext').value=f.content||(name.startsWith('preview')||name.startsWith('quote')?(name.endsWith('.html')?'Subject: \n\n<p>{{greeting}}</p>\n<p></p>\n{{signature}}\n':'Subject: \n\n{{greeting}}\n\n\n{{signature}}\n'):'');$('#tplmsg').textContent='';}
 $('#tplsave').onclick=async()=>{try{await api('/api/templates/'+CUR_TPL,{method:'PUT',body:JSON.stringify({content:$('#tpltext').value})});$('#tplmsg').className='msg-ok';$('#tplmsg').textContent='Saved. The next draft uses this wording.';const f=TEMPLATES.files.find(x=>x.name===CUR_TPL);f.content=$('#tpltext').value;f.exists=true;loadTemplates();refreshStatus();}catch(e){$('#tplmsg').className='msg-bad';$('#tplmsg').textContent=e.message;}};
 
 /* ---------- settings ---------- */
@@ -381,7 +384,7 @@ function renderSettings(){const s=STATUS;if(!s)return;const stat=(k,v,sub)=>`<di
   $('#settings').innerHTML=`<h2 class="sec" style="margin-top:0">Connections</h2><div class="grid">
     ${stat('Outlook',outlook,'')}
     ${stat('Files',esc(s.file_source)+' · '+s.videos+' videos · '+s.quotes+' quotes',esc(s.agency_root)+' · attachment limit '+s.max_attachment_mb+' MB')}
-    ${stat('Templates','preview '+(s.templates.preview.join('/')||'<span class="badge bad n">missing</span>')+' · quote '+(s.templates.quote.join('/')||'<span class="badge bad n">missing</span>'),s.signature?'signature present':'<span class="badge bad n">signature missing</span>')}
+    ${stat('Templates','preview '+(s.templates.preview.join('/')||'<span class="badge bad n">missing</span>')+' · quote '+(s.templates.quote.join('/')||'<span class="badge bad n">missing</span>'),(s.signature?'signature present':'<span class="badge bad n">signature missing</span>')+' · languages '+s.languages.join(', ')+(s.cc&&s.cc.length?' · CC '+esc(s.cc.join(', ')):' · <span class="badge warn n">no CC set</span>'))}
     ${stat('Research',s.llm?esc(s.model):'<span class="badge warn n">no AI key</span>',(s.llm?'request parsing + web research':'addresses typed by the owner')+(s.places?' · Google Places':'')+(s.search!=='none'&&s.search!=='anthropic'?' · '+esc(s.search):''))}
     ${stat('WhatsApp',s.whatsapp==='validator'?'third-party validator':'wa.me link + mobile/landline hint','status: yes / no / unverified')}
     ${stat('Mode',esc(s.mode)==='agent'?'Claude drives the tools':'rules run the steps, the model helps with language','registry re-check after '+s.registry_max_age_days+' days'+(s.demo?' · <b>demo mode</b>':''))}

@@ -36,6 +36,7 @@ class DraftResult:
     to: str
     attachment: str = ""
     attachment_mode: str = ""      # "attached" | "link" | "none"
+    cc: list[str] | None = None
 
 
 class GraphClient:
@@ -96,13 +97,15 @@ class GraphClient:
 
     # --- drafts -------------------------------------------------------------
     def create_draft(self, *, to: str, subject: str, body: str, body_type: str = "Text",
-                     to_name: str = "") -> DraftResult:
+                     to_name: str = "", cc: list[str] | None = None) -> DraftResult:
         payload = {"subject": subject, "body": {"contentType": body_type, "content": body},
                    "toRecipients": [{"emailAddress": {"address": to, **({"name": to_name} if to_name else {})}}]}
+        if cc:
+            payload["ccRecipients"] = [{"emailAddress": {"address": a}} for a in cc]
         data = self._request("POST", "/me/messages", json=payload).json()
         if not data.get("id"):
             raise GraphError("Graph did not confirm the draft (no id in the answer).")
-        return DraftResult(draft_id=data["id"], web_link=data.get("webLink", ""), subject=subject, to=to)
+        return DraftResult(draft_id=data["id"], web_link=data.get("webLink", ""), subject=subject, to=to, cc=list(cc or []))
 
     def attach(self, draft_id: str, filename: str, content: bytes, content_type: str = "application/octet-stream") -> None:
         if len(content) < SMALL_ATTACHMENT_LIMIT:

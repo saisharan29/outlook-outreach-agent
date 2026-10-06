@@ -20,7 +20,8 @@ def test_login_required_and_status(ctx, monkeypatch):
     assert c.post("/api/login", json={"password": "pw"}).json()["ok"]
     st = c.get("/api/status").json()
     assert st["signed_in"] and st["outlook_connected"] and st["demo"] and st["mode"] == "pipeline"
-    assert st["videos"] == 3 and st["quotes"] == 2 and st["templates"]["quote"] == ["fr", "en"] and st["signature"]
+    assert st["videos"] == 3 and st["quotes"] == 2 and st["templates"]["quote"] == ["fr", "de", "lb"] and st["signature"]
+    assert st["languages"] == ["fr", "de", "lb"] and st["country"] == "LU"
 
 
 def test_chat_returns_structured_reports_and_history(ctx, monkeypatch):
@@ -43,12 +44,13 @@ def test_chat_returns_structured_reports_and_history(ctx, monkeypatch):
 def test_templates_editor_validates(ctx, monkeypatch):
     c = client(ctx, monkeypatch)
     files = {f["name"]: f for f in c.get("/api/templates").json()["files"]}
-    assert files["preview_fr.txt"]["exists"] and files["signature.txt"]["exists"] is False
-    bad = c.put("/api/templates/quote_fr.txt", json={"content": "no subject\n\nbody"})
+    assert files["preview_fr.html"]["exists"] and files["preview_lb.html"]["html"] and files["signature.html"]["exists"]
+    assert "preview_en.html" not in files
+    bad = c.put("/api/templates/quote_fr.html", json={"content": "no subject\n\nbody"})
     assert bad.status_code == 400 and "Subject" in bad.json()["error"]
-    bad2 = c.put("/api/templates/quote_fr.txt", json={"content": "Subject: x\n\n{{greeting}} {{weird}} {{signature}}"})
+    bad2 = c.put("/api/templates/quote_fr.html", json={"content": "Subject: x\n\n{{greeting}} {{weird}} {{signature}}"})
     assert bad2.status_code == 400 and "weird" in bad2.json()["error"]
-    ok = c.put("/api/templates/quote_fr.txt", json={"content": "Subject: Devis {{company_name}}\n\n{{greeting}}\nNew.\n{{signature}}\nstop\n"})
+    ok = c.put("/api/templates/quote_fr.html", json={"content": "Subject: Devis {{company_name}}\n\n{{greeting}}\nNew.\n{{signature}}\nstop\n"})
     assert ok.json()["ok"] and c.put("/api/templates/evil.txt", json={"content": "x"}).status_code == 400
     r = c.post("/api/chat", json={"message": "Quote email for Garage Dupont"}).json()
     assert r["reports"][0]["draft"]["subject"] == "Devis Garage Dupont"

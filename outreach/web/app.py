@@ -32,6 +32,9 @@ from ..llm import make_llm
 from ..logging_setup import setup_logging
 from ..naming import parse_filename
 from ..templates import PLACEHOLDER, TemplateError, parse_template
+import re as _re
+
+_TEMPLATE_NAME = _re.compile(r"^(preview|quote)_(fr|de|lb|en)\.(html|txt)$|^signature(_(fr|de|lb|en))?\.(html|txt)$|^agency\.txt$")
 
 STATIC = Path(__file__).parent / "static"
 SESSION_IDLE_SECONDS = 12 * 3600          # signed out after 12 h without activity
@@ -47,8 +50,6 @@ SECURITY_HEADERS = {
                                 "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self' "
                                 "https://login.microsoftonline.com"),
 }
-TEMPLATE_FILES = ("preview_fr.txt", "preview_en.txt", "quote_fr.txt", "quote_en.txt",
-                  "signature_fr.txt", "signature_en.txt", "signature.txt", "agency.txt")
 KNOWN_PLACEHOLDERS = {"company_name", "contact_name", "greeting", "city", "preview_link", "signature", "agency_name"}
 
 
@@ -188,11 +189,12 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
                 "microsoft_configured": s.microsoft_configured() or demo, "demo": demo,
                 "file_source": context.files.source, "agency_root": s.AGENCY_ROOT,
                 "videos": len(videos), "quotes": len(quotes), "templates": context.templates.available(),
-                "signature": bool(context.templates.signature("fr") or context.templates.signature("en")),
+                "signature": bool(context.templates.signature(s.DEFAULT_LANGUAGE)),
                 "llm": llm.available, "model": s.llm_model, "provider": s.LLM_PROVIDER, "mode": "agent" if agent else "pipeline",
                 "search": s.SEARCH_PROVIDER if llm.available or s.SEARCH_PROVIDER in ("brave", "serpapi") else "none",
                 "places": bool(s.GOOGLE_PLACES_API_KEY), "whatsapp": "validator" if s.WHATSAPP_VALIDATOR_URL else "link",
                 "max_attachment_mb": s.MAX_ATTACHMENT_MB, "registry_max_age_days": s.REGISTRY_MAX_AGE_DAYS,
+                "languages": s.languages, "cc": s.cc_list, "country": s.DEFAULT_COUNTRY,
                 "companies": len(context.registry.all_companies()),
                 "drafts_today": sum(1 for a in actions if a.result == "draft_created" and a.at.startswith(today)),
                 "drafts_total": sum(1 for a in actions if a.result == "draft_created"),
@@ -281,21 +283,31 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
 
     @app.get("/api/templates")
     def templates(session: Session = Depends(current_session)):
+        folder = context.templates.folder
+        expected = [f"{t}_{lang}.html" for t in ("preview", "quote") for lang in s.languages] + ["signature.html", "agency.txt"]
+        existing = sorted(p.name for p in folder.glob("*") if _TEMPLATE_NAME.match(p.name)) if folder.exists() else []
+        names, seen = [], set()
+        for n in existing + expected:
+            stem = n.rsplit(".", 1)[0]
+            if n in seen or (n in expected and n not in existing and stem in {e.rsplit(".", 1)[0] for e in existing}):
+                continue
+            seen.add(n); names.append(n)
         out = []
-        for name in TEMPLATE_FILES:
-            p = context.templates.folder / name
-            out.append({"name": name, "exists": p.exists(),
+        for name in names:
+            p = folder / name
+            out.append({"name": name, "exists": p.exists(), "html": name.endswith(".html"),
                         "content": p.read_text(encoding="utf-8") if p.exists() else ""})
-        return {"folder": str(context.templates.folder), "files": out, "placeholders": sorted(KNOWN_PLACEHOLDERS)}
+        return {"folder": str(folder), "files": out, "placeholders": sorted(KNOWN_PLACEHOLDERS),
+                "languages": s.languages}
 
     @app.put("/api/templates/{name}")
     def save_template(name: str, body: TemplateBody, session: Session = Depends(current_session)):
-        if name not in TEMPLATE_FILES:
+        if not _TEMPLATE_NAME.match(name):
             raise HTTPException(400, "Unknown template file.")
         content = body.content.replace("\r\n", "\n")
         if name.startswith(("preview_", "quote_")):
             try:
-                t = parse_template(content, name.split("_")[0], name.split("_")[1][:2])
+                t = parse_template(content, name.split("_")[0], name.split("_")[1][:2], html=name.endswith(".html"))
             except TemplateError as exc:
                 raise HTTPException(400, str(exc))
             unknown = sorted(t.placeholders - KNOWN_PLACEHOLDERS)
