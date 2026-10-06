@@ -125,7 +125,42 @@ class Researcher:
                     break
         if not candidates and self.llm and self.llm.available:
             candidates = self._identify_with_llm(name, city)
+        if not candidates:
+            candidates = self._probe_domains(name, city)
         return _dedupe_candidates(candidates, name)
+
+    # Without any search key, try the obvious domains and keep one only when the page itself
+    # names the company: a fetched page is evidence, not a guess (FR-13 concerns addresses).
+    PROBE_TLDS = (".lu", ".com", ".eu", ".fr", ".be", ".de")
+
+    def _probe_domains(self, name: str, city: str) -> list[Candidate]:
+        from ..naming import normalize
+        key = normalize(name)
+        if len(key) < 4:
+            return []
+        words = [w for w in re.split(r"[^a-z0-9]+", name.lower()) if w]
+        stems = [key]
+        if len(words) > 1:
+            stems.append("-".join(words))
+        tlds = self.PROBE_TLDS
+        if self.default_country.lower() not in [t[1:] for t in tlds]:
+            tlds = ("." + self.default_country.lower(),) + tlds
+        tried = 0
+        for stem in stems:
+            for tld in tlds:
+                if tried >= 8:
+                    return []
+                tried += 1
+                url = normalize_url(f"https://{stem}{tld}")
+                page = self.fetcher.get(url)
+                if not page.status or page.status >= 400 or not page.html:
+                    continue
+                haystack = normalize(page.title + " " + page.text[:3000])
+                if key in haystack or all(w in haystack for w in words if len(w) > 2):
+                    return [Candidate(name=page.title.split(" - ")[0].split(" | ")[0].strip() or name, website=page.url,
+                                      city=city, country=self.default_country,
+                                      source=f"website found by trying {stem}{tld} (page names the company)")]
+        return []
 
     def _identify_with_llm(self, name: str, city: str) -> list[Candidate]:
         schema = {"type": "object", "properties": {"candidates": {"type": "array", "items": {

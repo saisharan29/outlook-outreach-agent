@@ -12,6 +12,12 @@ DIRECTORY = """<html><body>Garage Dupont Villeurbanne — garage.dupont@orange.f
 
 def handler(request):
     host, path = request.url.host, request.url.path
+    if host == "luxtdm.lu":
+        return httpx.Response(200, text="<html><head><title>LuxTDM - Transport</title></head><body>Lux TDM Luxembourg</body></html>",
+                              headers={"content-type": "text/html"})
+    if host == "pizzaroma.lu":
+        return httpx.Response(200, text="<html><head><title>Domain for sale</title></head><body>Buy this domain</body></html>",
+                              headers={"content-type": "text/html"})
     if host == "garage-dupont.fr":
         body = {"/": HOME, "/contact": CONTACT}.get(path)
     elif host == "pagesjaunes.fr":
@@ -82,3 +88,10 @@ def test_dead_domain_excluded_from_best():
 def test_name_and_role_needs_explicit_role_word():
     assert _name_and_role("Jean Martin, gérant : jean@x.fr", "jean") == ("Jean Martin", "gérant")
     assert _name_and_role("écrivez à jean@x.fr pour toute question", "jean") == ("", "")
+
+
+def test_domain_probe_finds_site_only_when_page_names_the_company():
+    r = researcher(default_country="LU")
+    found = r.identify("Luxtdm", "Luxembourg")
+    assert len(found) == 1 and found[0].website == "https://luxtdm.lu" and "trying" in found[0].source
+    assert r.identify("Pizza Roma", "Luxembourg") == []      # a parked domain is not evidence

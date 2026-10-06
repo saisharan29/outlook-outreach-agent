@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.4.0 — 2026-10-06
+- Identification without any search key: the obvious domains (.lu, .com, .eu…) are tried and one is kept only when the page names the company.
 - The owner's rules: Luxembourg as default country (mobiles 621/661/691), fixed CC recipients on every draft, "Bonjour"/"Bonsoir" by time of day, loud warning when no phone or no mobile is found.
 - HTML emails: `.html` templates and an HTML signature block (Webalix); values escaped, signature kept as HTML.
 - Languages: French, German, Luxembourgish (`SUPPORTED_LANGUAGES`); the owner's real preview email as the French template, with German and Luxembourgish translations to proofread; a request in an unsupported language is refused.

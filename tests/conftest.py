@@ -11,6 +11,7 @@ from outreach.config import Settings                             # noqa: E402
 from outreach.demo_data import build_demo                        # noqa: E402
 from outreach.files.local import LocalFileStore                  # noqa: E402
 from outreach.registry import Registry                           # noqa: E402
+from outreach.research.crawler import Fetcher                    # noqa: E402
 from outreach.research.identify import Researcher                # noqa: E402
 from outreach.templates import TemplateStore                     # noqa: E402
 
@@ -25,7 +26,9 @@ def ctx(agency, monkeypatch):
     monkeypatch.setenv("AGENCY_ROOT", str(agency))
     s = Settings()
     registry = Registry(agency / "Registry" / "registry.sqlite")
-    researcher = Researcher(dns_check=False)
+    import httpx
+    offline = Fetcher(client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(404))))
+    researcher = Researcher(dns_check=False, fetcher=offline)
     c = Context(settings=s, registry=registry, files=LocalFileStore(agency), templates=TemplateStore(agency / "Templates"),
                 researcher=researcher, graph=FakeGraph(agency / "Registry" / "demo_drafts.json"), agency_name="Studio Web")
     yield c
