@@ -70,7 +70,8 @@ sharing link when a preview video is above `MAX_ATTACHMENT_MB`. Set `FILE_SOURCE
 read the folders through Graph; keep `local` when the folder is on the machine (or synced by the
 OneDrive client, in which case sharing links still work through Graph).
 
-On Windows, `start.bat` does all of this; on macOS or Linux, `./start.sh` (creates `.env` on first run, installs, checks, starts, opens the browser).
+On Windows, `start.bat` does all of this; on macOS or Linux, `./start.sh`. When the folder is a
+`git clone`, both scripts pull the latest version before starting (`AUTO_UPDATE=0` disables it) (creates `.env` on first run, installs, checks, starts, opens the browser).
 
 ### Research keys (phase 2)
 
@@ -259,11 +260,33 @@ API: `POST /api/login` · `POST /api/chat {message}` · `GET /api/status` · `GE
 
 ## Security and privacy (spec section 9)
 
-Microsoft OAuth with the owner's account; secrets only in `.env` and the encrypted token file;
-scopes without send; endpoints blocked client-side; one password for the chat with a signed
-cookie; only business contact details from public sources are stored, each with its source, in the
-owner's own folder; the opt-out sentence is part of the templates and a missing one is flagged in
-the report; `Do not contact X` honours an opt-out permanently.
+- **Cannot send:** no `Mail.Send` scope requested, a token carrying one is refused, every send
+  endpoint is blocked in the Graph client, there is no send tool; `scripts/verify_cannot_send.py`
+  proves it against the live account.
+- **Secrets:** only in `.env` (git-ignored) and in the Microsoft token file, encrypted with a key
+  derived from `SECRET_KEY`. Nothing in code, logs or the chat.
+- **Access to the app:** one owner password compared in constant time, 5 failures lock the address
+  for a minute, signed `HttpOnly` / `SameSite=Strict` session cookie, sessions expire after 12 h
+  idle and 30 days in any case, logout invalidates the server side.
+- **Network:** the server listens on `127.0.0.1` only unless `HOST` says otherwise; behind the
+  HTTPS proxy of `docker-compose.prod.yml` it adds `Strict-Transport-Security`.
+- **Browser hardening:** Content-Security-Policy, `X-Frame-Options: DENY`, `nosniff`,
+  `no-referrer`, `Cache-Control: no-store`; state-changing requests from another origin are
+  refused (Origin / Sec-Fetch-Site check).
+- **Data:** only business contact details from public sources, each with its source URL and date,
+  in the owner's own folder; the opt-out sentence is part of the templates and a missing one is
+  flagged; `Do not contact X` honours an opt-out permanently; web page text is data, never an
+  instruction.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Safari: "cannot establish a secure connection to localhost" | Safari upgraded the address to https. Type `http://127.0.0.1:8080` |
+| "Too many attempts. Wait a minute." | five wrong passwords; wait 60 s, the password is case-sensitive |
+| "Session expired" | 12 h without activity; sign in again |
+| Terminal shows `Invalid HTTP request received` | a browser sent https to the http server; harmless, see the Safari line |
+| `python3.12: command not found` on macOS | install Python from python.org, quit and reopen Terminal, or use `python3.13` |
 
 ## Out of scope (v1)
 

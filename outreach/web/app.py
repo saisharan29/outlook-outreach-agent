@@ -19,6 +19,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel
+from urllib.parse import urlparse
 
 from .. import __version__
 from ..agent.context import Context, build_context
@@ -33,6 +34,19 @@ from ..naming import parse_filename
 from ..templates import PLACEHOLDER, TemplateError, parse_template
 
 STATIC = Path(__file__).parent / "static"
+SESSION_IDLE_SECONDS = 12 * 3600          # signed out after 12 h without activity
+SESSION_MAX_SECONDS = 30 * 86400          # and in any case after 30 days
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Cache-Control": "no-store",
+    "Content-Security-Policy": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' "
+                                "https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; "
+                                "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self' "
+                                "https://login.microsoftonline.com"),
+}
 TEMPLATE_FILES = ("preview_fr.txt", "preview_en.txt", "quote_fr.txt", "quote_en.txt",
                   "signature_fr.txt", "signature_en.txt", "signature.txt", "agency.txt")
 KNOWN_PLACEHOLDERS = {"company_name", "contact_name", "greeting", "city", "preview_link", "signature", "agency_name"}
@@ -75,8 +89,29 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
     pipeline = Pipeline(context, llm=llm if llm.available else None)
     agent = AgentLoop(context, llm) if (s.AGENT_MODE == "agent" and llm.available) else None
     sessions: dict[str, Session] = {}
+    session_times: dict[str, tuple[float, float]] = {}      # sid -> (created, last_seen)
     app = FastAPI(title="Outlook Outreach Draft Agent", version=__version__, docs_url=None, redoc_url=None)
     app.state.ctx, app.state.pipeline, app.state.sessions = context, pipeline, sessions
+    app.state.session_times = session_times
+    https = s.PUBLIC_URL.startswith("https")
+
+    @app.middleware("http")
+    async def harden(request: Request, call_next):
+        # Cross-site request forgery: a browser sends Origin / Sec-Fetch-Site on state-changing requests;
+        # anything that is not same-origin is refused before it reaches a handler.
+        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            origin = request.headers.get("origin")
+            fetch_site = request.headers.get("sec-fetch-site")
+            if origin and urlparse(origin).netloc.lower() != request.headers.get("host", "").lower():
+                return JSONResponse({"error": "Cross-site request refused."}, status_code=403)
+            if fetch_site and fetch_site not in ("same-origin", "none"):
+                return JSONResponse({"error": "Cross-site request refused."}, status_code=403)
+        response = await call_next(request)
+        for k, v in SECURITY_HEADERS.items():
+            response.headers.setdefault(k, v)
+        if https:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response
 
     # --- auth -------------------------------------------------------------------------------
     def current_session(request: Request) -> Session:
@@ -85,6 +120,13 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
         if s.APP_PASSWORD:
             if not sid or not hmac.compare_digest(sig, _sign(s.SECRET_KEY, sid)):
                 raise HTTPException(401, "Sign in first.")
+            created, last = session_times.get(sid, (0.0, 0.0))
+            now = time.time()
+            if sid not in sessions or now - last > SESSION_IDLE_SECONDS or now - created > SESSION_MAX_SECONDS:
+                sessions.pop(sid, None)
+                session_times.pop(sid, None)
+                raise HTTPException(401, "Session expired. Sign in again.")
+            session_times[sid] = (created, now)
         else:
             sid = sid or "local"
         return sessions.setdefault(sid, Session())
@@ -101,15 +143,20 @@ def create_app(settings: Settings | None = None, ctx: Context | None = None, dem
             time.sleep(0.5)
             raise HTTPException(401, "Wrong password.")
         failed_logins.pop(ip, None)
-        sid = secrets.token_urlsafe(16)
-        response.set_cookie("ooda_session", f"{sid}.{_sign(s.SECRET_KEY, sid)}", httponly=True, samesite="lax",
-                            secure=s.PUBLIC_URL.startswith("https"), max_age=30 * 86400)
+        sid = secrets.token_urlsafe(24)
+        response.set_cookie("ooda_session", f"{sid}.{_sign(s.SECRET_KEY, sid)}", httponly=True, samesite="strict",
+                            secure=https, max_age=SESSION_MAX_SECONDS, path="/")
         sessions[sid] = Session()
+        session_times[sid] = (time.time(), time.time())
+        log_.info("login from %s", ip)
         return {"ok": True}
 
     @app.post("/api/logout")
-    def logout(response: Response):
-        response.delete_cookie("ooda_session")
+    def logout(request: Request, response: Response):
+        sid = request.cookies.get("ooda_session", "").partition(".")[0]
+        sessions.pop(sid, None)
+        session_times.pop(sid, None)
+        response.delete_cookie("ooda_session", path="/")
         return {"ok": True}
 
     # --- pages and status ---------------------------------------------------------------------
@@ -303,7 +350,8 @@ def main() -> None:  # pragma: no cover
     import os
     import uvicorn
     demo = os.getenv("DEMO", "") in ("1", "true", "yes")
-    uvicorn.run(create_app(demo=demo), host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", "8080")))
+    uvicorn.run(create_app(demo=demo), host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "8080")),
+                server_header=False, proxy_headers=True)
 
 
 if __name__ == "__main__":  # pragma: no cover

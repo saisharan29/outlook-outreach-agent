@@ -155,6 +155,7 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.show{opacity:1}
 .hidden{display:none!important}
+.app.locked .nav,.app.locked .conn,.app.locked #logout{display:none}
 /* ---- phone ---- */
 @media (max-width:760px){
   .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
@@ -252,7 +253,9 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let STATUS=null, PENDING=[], TEMPLATES=null, CUR_TPL=null;
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const linkify=t=>esc(t).replace(/(https?:\/\/[^\s)<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
-const api=async(path,opt={})=>{const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.statusText);return j;};
+const api=async(path,opt={})=>{const r=await fetch(path,{headers:{'Content-Type':'application/json'},credentials:'same-origin',...opt});const j=await r.json().catch(()=>({}));
+  if(r.status===401&&!path.startsWith('/api/login')){$('#app').classList.add('locked');show('login');}
+  if(!r.ok)throw new Error(j.error||r.statusText);return j;};
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);};
 const fmtDate=iso=>{if(!iso)return'';const d=new Date(iso);return d.toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});};
 const conf=c=>({high:['ok','high confidence'],medium:['warn','medium confidence'],low:['bad','low confidence']}[c]||['info',c||'']);
@@ -264,7 +267,7 @@ applyTheme();
 
 /* ---------- navigation ---------- */
 const TITLES={chat:'Chat',companies:'Companies',activity:'Activity log',templates:'Templates',settings:'Status & connections',login:'Sign in'};
-function show(view){$$('.view').forEach(v=>v.classList.toggle('hidden',v.id!=='view-'+view));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#title').textContent=TITLES[view];
+function show(view){if($('#app').classList.contains('locked')&&view!=='login')view='login';$$('.view').forEach(v=>v.classList.toggle('hidden',v.id!=='view-'+view));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#title').textContent=TITLES[view];
   $('#topActions').innerHTML=view==='chat'?'<button class="btn sm" id="clear">Clear chat</button>':'';
   if(view==='chat'){const c=$('#clear');if(c)c.onclick=async()=>{await api('/api/history/clear',{method:'POST'});$('#log').innerHTML='';renderEmpty();};}
   if(view==='companies')loadCompanies();if(view==='activity')loadActivity();if(view==='templates')loadTemplates();if(view==='settings')renderSettings();
@@ -281,6 +284,7 @@ async function refreshStatus(){STATUS=await api('/api/status');const s=STATUS;
     <div class="row"><i class="dot ${s.llm?'ok':'warn'}"></i><span>${s.llm?esc(s.model):'No AI key: type addresses'}</span></div>
     ${s.demo?'<div class="row"><i class="dot warn"></i><span>Demo mode</span></div>':''}
     ${!s.outlook_connected&&s.microsoft_configured&&!s.demo&&s.signed_in?'<a href="/auth/microsoft" class="btn sm primary" style="justify-content:center">Connect Outlook</a>':''}`;
+  $('#app').classList.toggle('locked',need);
   if(need){show('login');} return s;}
 $('#loginform').onsubmit=async e=>{e.preventDefault();try{await api('/api/login',{method:'POST',body:JSON.stringify({password:$('#pw').value})});$('#loginerr').textContent='';await refreshStatus();show('chat');loadHistory();}catch(err){$('#loginerr').textContent=err.message;}};
 $('#logout').onclick=async()=>{await api('/api/logout',{method:'POST'});location.reload();};

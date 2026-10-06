@@ -13,6 +13,10 @@ if (-not (Test-Path ".env")) {
   notepad .env
   exit 0
 }
+if ((Test-Path ".git") -and ($env:AUTO_UPDATE -ne "0") -and (Get-Command git -ErrorAction SilentlyContinue)) {
+  Write-Host "== Checking for updates" -ForegroundColor Cyan
+  git pull --ff-only
+}
 python -m pip install --quiet --disable-pip-version-check -r requirements.txt
 if (-not (Test-Path "Agency\Templates")) {
   Write-Host "No Agency folder next to the code: writing the sample one (templates, example files)." -ForegroundColor Yellow

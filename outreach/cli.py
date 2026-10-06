@@ -39,7 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "serve":
         from .web.app import create_app
         import uvicorn
-        uvicorn.run(create_app(demo=demo), host=os.getenv("HOST", "0.0.0.0"), port=int(os.getenv("PORT", "8080")))
+        # Reachable from this machine only unless HOST is set (HOST=0.0.0.0 for the phone on the same Wi-Fi,
+        # or behind the HTTPS proxy of docker-compose.prod.yml).
+        uvicorn.run(create_app(demo=demo), host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "8080")),
+                    server_header=False, proxy_headers=True)
         return 0
     ctx = _ctx(demo)
     from .agent.models import Session

@@ -11,6 +11,9 @@ if [ ! -f .env ]; then
   ${EDITOR:-open -t} .env 2>/dev/null || true
   exit 0
 fi
+if [ -d .git ] && [ "${AUTO_UPDATE:-1}" != "0" ] && command -v git >/dev/null 2>&1; then
+  echo "== Checking for updates"; git pull --ff-only || echo "(update skipped: $?)"
+fi
 if [ ! -d .venv ]; then $PY -m venv .venv; fi
 . .venv/bin/activate
 pip install --quiet --disable-pip-version-check -r requirements.txt

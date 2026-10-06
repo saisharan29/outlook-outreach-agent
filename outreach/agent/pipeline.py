@@ -10,6 +10,7 @@ from __future__ import annotations
 import traceback
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 from ..registry import now_iso
 from .context import Context
@@ -96,18 +97,24 @@ class Pipeline:
         return "\n".join(out) or "Which company should I stop contacting?"
 
     # --- the work ---------------------------------------------------------------------------
+    BATCH_WORKERS = 4
+
     def run_batch(self, requests: list[CompanyRequest]) -> list[CompanyReport]:
-        reports = []
-        for req in requests:
+        """Companies of a batch run in parallel (research is network-bound); the report keeps the
+        owner's order, and one company failing never stops the others (section 8)."""
+        def one(req: CompanyRequest) -> CompanyReport:
             try:
-                reports.append(self.run_company(req))
-            except Exception as exc:   # one company failing never stops the batch (section 8)
+                return self.run_company(req)
+            except Exception as exc:
                 self.ctx.registry.log(company=req.name, email_type=req.email_type, result="failed",
                                       detail=f"{type(exc).__name__}: {exc}")
-                reports.append(CompanyReport(request=req, status="failed",
-                                             message=f"Unexpected error: {type(exc).__name__}: {exc}",
-                                             attention=[traceback.format_exc().strip().splitlines()[-1]]))
-        return reports
+                return CompanyReport(request=req, status="failed",
+                                     message=f"Unexpected error: {type(exc).__name__}: {exc}",
+                                     attention=[traceback.format_exc().strip().splitlines()[-1]])
+        if len(requests) <= 1:
+            return [one(r) for r in requests]
+        with ThreadPoolExecutor(max_workers=min(self.BATCH_WORKERS, len(requests))) as pool:
+            return list(pool.map(one, requests))
 
     def run_company(self, req: CompanyRequest) -> CompanyReport:
         tools = Tools(self.ctx)

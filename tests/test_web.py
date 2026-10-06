@@ -88,3 +88,46 @@ def test_health_exports_and_login_lock(ctx, monkeypatch):
     for _ in range(5):
         assert fresh.post("/api/login", json={"password": "wrong"}).status_code == 401
     assert fresh.post("/api/login", json={"password": "pw"}).status_code == 429
+
+
+def test_security_headers_csrf_and_session_expiry(ctx, monkeypatch):
+    import time as _time
+    from outreach.web import app as webapp
+    c = client(ctx, monkeypatch)
+    r = c.get("/api/status")
+    assert r.headers["x-frame-options"] == "DENY" and "default-src 'self'" in r.headers["content-security-policy"]
+    assert r.headers["cache-control"] == "no-store" and "server" not in {k.lower() for k in r.headers}
+    # A request carrying a foreign Origin is refused before any handler runs.
+    bad = c.post("/api/chat", json={"message": "status"}, headers={"Origin": "https://evil.example"})
+    assert bad.status_code == 403
+    bad2 = c.post("/api/chat", json={"message": "status"}, headers={"Sec-Fetch-Site": "cross-site"})
+    assert bad2.status_code == 403
+    ok = c.post("/api/chat", json={"message": "status"}, headers={"Origin": "http://testserver", "Sec-Fetch-Site": "same-origin"})
+    assert ok.status_code == 200
+    # Idle expiry: pretend 13 hours passed.
+    real = _time.time
+    monkeypatch.setattr(webapp.time, "time", lambda: real() + 13 * 3600)
+    assert c.get("/api/history").status_code == 401
+    monkeypatch.setattr(webapp.time, "time", real)
+    # Logout invalidates the server-side session even if the cookie is replayed.
+    c2 = client(ctx, monkeypatch)
+    cookie = c2.cookies.get("ooda_session")
+    c2.post("/api/logout")
+    c2.cookies.set("ooda_session", cookie)
+    assert c2.get("/api/history").status_code == 401
+
+
+def test_batch_runs_in_parallel_and_keeps_order(ctx, monkeypatch):
+    import threading
+    from outreach.agent.pipeline import Pipeline
+    p = Pipeline(ctx)
+    seen = []
+    orig = p.run_company
+    def slow(req):
+        seen.append(threading.current_thread().name)
+        return orig(req)
+    monkeypatch.setattr(p, "run_company", slow)
+    from outreach.agent.models import Session
+    reply = p.handle("Quote email for Garage Dupont; Boulangerie Martin, Lyon; Fleuriste Rose, Nantes", Session())
+    assert reply.index("Garage Dupont") < reply.index("Boulangerie Martin") < reply.index("Fleuriste Rose")
+    assert len(set(seen)) > 1

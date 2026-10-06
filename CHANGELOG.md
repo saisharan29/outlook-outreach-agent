@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 — 2026-10-06
+- Security: server bound to 127.0.0.1 by default, CSRF (Origin / Sec-Fetch-Site) check, security headers incl. CSP, SameSite=Strict cookie, session expiry (12 h idle / 30 days), server-side logout, nothing in the interface usable before sign-in.
+- Speed: companies of a batch run in parallel (4 workers), registry writes serialised with a lock.
+- Start scripts pull updates automatically when the folder is a git clone.
+
 ## 1.2.0 — 2026-10-05
 - Gemini as a third provider (`LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL`) through Google's OpenAI-compatible endpoint.
 - OpenAI as an alternative model provider (`LLM_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL`): request parsing, web research and the agent mode run on either provider.

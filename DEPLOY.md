@@ -97,7 +97,18 @@ Give keys to the developer by a password manager or a one-time secret link, neve
 
 ## A. On the owner's computer
 
-### A0. The short way
+### A0. The short way (recommended: a git clone, so updates arrive by themselves)
+
+```bash
+git clone https://github.com/saisharan29/outlook-outreach-agent.git
+cd outlook-outreach-agent
+./start.sh            # macOS / Linux          (Windows: start.bat)
+```
+
+Every later start runs `git pull` first, so the owner always has the latest version without
+downloading anything. macOS without git: run `git --version` once, macOS offers to install it.
+
+### A0 bis. The ZIP way
 
 Double-click `start.bat` in the project folder (macOS: open Terminal in the folder and run `./start.sh`). It creates `.env` on the first run and opens it in
 Notepad; fill it (A2), run `start.bat` again, and it installs, checks and starts the chat. Steps

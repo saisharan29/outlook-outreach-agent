@@ -7,6 +7,7 @@ from __future__ import annotations
 import csv
 import json
 import sqlite3
+import threading
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -131,6 +132,7 @@ class Registry:
         self.conn = sqlite3.connect(str(self.path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        self.lock = threading.RLock()
 
     # --- companies ---------------------------------------------------------
     @staticmethod
@@ -144,7 +146,8 @@ class Registry:
     def find(self, name: str, city: str | None = None) -> list[Company]:
         """Every company whose name or alias matches; narrowed by city when given."""
         key = normalize(name)
-        rows = self.conn.execute("SELECT * FROM companies").fetchall()
+        with self.lock:
+            rows = self.conn.execute("SELECT * FROM companies").fetchall()
         out = []
         for r in rows:
             aliases = {normalize(a) for a in json.loads(r["aliases"] or "[]")}
@@ -155,11 +158,16 @@ class Registry:
         return out
 
     def get(self, name: str, city: str = "") -> Company | None:
-        r = self.conn.execute("SELECT * FROM companies WHERE key=? AND city_key=?",
+        with self.lock:
+            r = self.conn.execute("SELECT * FROM companies WHERE key=? AND city_key=?",
                               (normalize(name), normalize(city))).fetchone()
         return self._row_to_company(r) if r else None
 
     def upsert(self, c: Company) -> Company:
+        with self.lock:
+            return self._upsert(c)
+
+    def _upsert(self, c: Company) -> Company:
         c.updated_at = now_iso()
         cols = c.to_dict()
         cols["aliases"] = json.dumps(sorted({a for a in c.aliases if a}))
@@ -181,11 +189,18 @@ class Registry:
         return self.upsert(c)
 
     def all_companies(self) -> list[Company]:
-        return [self._row_to_company(r) for r in self.conn.execute("SELECT * FROM companies ORDER BY name")]
+        with self.lock:
+            return [self._row_to_company(r) for r in self.conn.execute("SELECT * FROM companies ORDER BY name")]
 
     # --- action log (FR-28) --------------------------------------------------
     def log(self, *, company: str, result: str, email_type: str = "", recipient: str = "",
             file: str = "", detail: str = "") -> Action:
+        with self.lock:
+            return self._log(company=company, result=result, email_type=email_type, recipient=recipient,
+                             file=file, detail=detail)
+
+    def _log(self, *, company: str, result: str, email_type: str = "", recipient: str = "",
+             file: str = "", detail: str = "") -> Action:
         a = Action(at=now_iso(), company=company, email_type=email_type, recipient=recipient,
                    file=file, result=result, detail=detail)
         cur = self.conn.execute(
@@ -196,7 +211,8 @@ class Registry:
         return a
 
     def actions(self, limit: int = 200) -> list[Action]:
-        rows = self.conn.execute("SELECT * FROM actions ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        with self.lock:
+            rows = self.conn.execute("SELECT * FROM actions ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [Action(**dict(r)) for r in rows]
 
     # --- export ----------------------------------------------------------------
