@@ -3,8 +3,15 @@
 #   chmod +x start.sh && ./start.sh
 set -e
 cd "$(dirname "$0")"
-PY=python3
-command -v $PY >/dev/null 2>&1 || { echo "Python 3 is not installed. On macOS: install from https://www.python.org/downloads/ (3.11 or 3.12)."; exit 1; }
+# The newest Python 3.11+ on this machine (macOS ships an old 3.9 as python3).
+PY="${PY:-}"
+if [ -z "$PY" ]; then
+  for cand in python3.13 python3.12 python3.11 python3; do
+    if command -v "$cand" >/dev/null 2>&1 && "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then PY="$cand"; break; fi
+  done
+fi
+[ -n "$PY" ] || { echo "Python 3.11 or newer is not installed. macOS: https://www.python.org/downloads/macos/ (3.12 or 3.13), then quit and reopen Terminal."; exit 1; }
+echo "Using $PY ($($PY --version))"
 if [ ! -f .env ]; then
   cp .env.example .env
   echo ".env created from .env.example. Fill MS_CLIENT_ID, MS_CLIENT_SECRET, APP_PASSWORD, SECRET_KEY (and ANTHROPIC_API_KEY), then run ./start.sh again."
